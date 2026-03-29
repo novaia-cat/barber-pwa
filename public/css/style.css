@@ -176,6 +176,10 @@ body {
   align-items: center;
 }
 
+#rgpd-modal {
+  z-index: 200;
+}
+
 .modal.active {
   display: flex;
 }
