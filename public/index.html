@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <title>Barber Chat</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <div id="app">
+
+    <!-- Header -->
+    <header id="chat-header">
+      <img id="logo" src="" alt="Logo" />
+      <div id="header-info">
+        <span id="barber-name">Cargando...</span>
+        <span id="header-status">En linea</span>
+      </div>
+    </header>
+
+    <!-- Mensajes -->
+    <main id="chat-messages"></main>
+
+    <!-- Input -->
+    <footer id="chat-footer">
+      <input
+        id="chat-input"
+        type="text"
+        placeholder="Escribe un mensaje..."
+        autocomplete="off"
+        disabled
+      />
+      <button id="send-btn" disabled>&#9658;</button>
+    </footer>
+
+    <!-- Badge tier free -->
+    <div id="novaia-badge" style="display:none">
+      <a href="https://novaia.cat" target="_blank">Powered by Novaia</a>
+    </div>
+
+    <!-- Modal registro -->
+    <div id="register-modal" class="modal">
+      <div class="modal-box">
+        <h2>Bienvenido</h2>
+        <p>Introduce tu nombre y telefono para continuar</p>
+        <input id="reg-nombre" type="text" placeholder="Nombre" maxlength="50" />
+        <input id="reg-telefono" type="tel" placeholder="Telefono (ej: 612345678)" maxlength="15" />
+        <button id="reg-btn">Empezar</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
