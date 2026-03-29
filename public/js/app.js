@@ -20,6 +20,7 @@ const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const registerModal = document.getElementById('register-modal');
 const regNombre = document.getElementById('reg-nombre');
+const regApellido = document.getElementById('reg-apellido');
 const regTelefono = document.getElementById('reg-telefono');
 const regBtn = document.getElementById('reg-btn');
 const barberName = document.getElementById('barber-name');
@@ -84,6 +85,7 @@ async function sendMessage(text) {
         barber_id: barberId,
         telefono: session.telefono,
         nombre: session.nombre,
+        apellido: session.apellido,
         mensaje: text
       })
     });
@@ -113,9 +115,11 @@ function hideRegisterModal() {
 
 regBtn.addEventListener('click', async () => {
   const nombre = regNombre.value.trim();
+  const apellido = regApellido.value.trim();
   const telefono = regTelefono.value.trim().replace(/\s/g, '');
 
   if (!nombre || nombre.length < 2) { regNombre.focus(); return; }
+  if (!apellido || apellido.length < 2) { regApellido.focus(); return; }
   if (!telefono.match(/^\d{9,15}$/)) { regTelefono.focus(); return; }
 
   regBtn.disabled = true;
@@ -125,16 +129,16 @@ regBtn.addEventListener('click', async () => {
     const res = await fetch(WEBHOOK_CHAT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ barber_id: barberId, telefono, nombre, mensaje: 'hola' })
+      body: JSON.stringify({ barber_id: barberId, telefono, nombre, apellido, mensaje: 'hola' })
     });
     const data = await res.json();
 
-    session = { nombre, telefono };
+    session = { nombre, apellido, telefono };
     localStorage.setItem('barber_session_' + barberId, JSON.stringify(session));
 
     hideRegisterModal();
     enableChat();
-    addBubble(data.respuesta || 'Hola ' + nombre + ', en que puedo ayudarte?', 'bot');
+    addBubble(data.respuesta || 'Hola ' + nombre + ' ' + apellido + ', en que puedo ayudarte?', 'bot');
     subscribePush();
   } catch {
     addBubble('Error al registrar. Intentalo de nuevo.', 'bot');
@@ -217,7 +221,7 @@ if ('serviceWorker' in navigator) {
 
   if (session) {
     enableChat();
-    addBubble('Hola ' + session.nombre + ', en que puedo ayudarte?', 'bot');
+    addBubble('Hola ' + session.nombre + ' ' + session.apellido + ', en que puedo ayudarte?', 'bot');
   } else {
     showRegisterModal();
   }
