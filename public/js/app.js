@@ -22,7 +22,14 @@ const registerModal = document.getElementById('register-modal');
 const regNombre = document.getElementById('reg-nombre');
 const regApellido = document.getElementById('reg-apellido');
 const regTelefono = document.getElementById('reg-telefono');
+const regRgpd = document.getElementById('reg-rgpd');
 const regBtn = document.getElementById('reg-btn');
+const rgpdModal = document.getElementById('rgpd-modal');
+const rgpdLink = document.getElementById('rgpd-link');
+const rgpdCloseBtn = document.getElementById('rgpd-close-btn');
+
+rgpdLink.addEventListener('click', e => { e.preventDefault(); rgpdModal.classList.add('active'); });
+rgpdCloseBtn.addEventListener('click', () => { rgpdModal.classList.remove('active'); regRgpd.checked = true; });
 const barberName = document.getElementById('barber-name');
 const logo = document.getElementById('logo');
 const novaiaBadge = document.getElementById('novaia-badge');
@@ -121,6 +128,7 @@ regBtn.addEventListener('click', async () => {
   if (!nombre || nombre.length < 2) { regNombre.focus(); return; }
   if (!apellido || apellido.length < 2) { regApellido.focus(); return; }
   if (!telefono.match(/^\d{9,15}$/)) { regTelefono.focus(); return; }
+  if (!regRgpd.checked) { rgpdLink.click(); return; }
 
   regBtn.disabled = true;
   regBtn.textContent = 'Registrando...';

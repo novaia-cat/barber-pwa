@@ -41,6 +41,23 @@
       <a href="https://novaia.cat" target="_blank">Powered by Novaia</a>
     </div>
 
+    <!-- Modal politica de privacidad -->
+    <div id="rgpd-modal" class="modal">
+      <div class="modal-box">
+        <h2>Politica de Privacidad</h2>
+        <div class="rgpd-text">
+          <p><strong>Responsable:</strong> El titular de la barberia.</p>
+          <p><strong>Datos recogidos:</strong> Nombre, apellido y telefono.</p>
+          <p><strong>Finalidad:</strong> Gestion de citas y comunicacion relacionada con los servicios de la barberia.</p>
+          <p><strong>Base legal:</strong> Consentimiento del interesado (art. 6.1.a RGPD).</p>
+          <p><strong>Conservacion:</strong> Los datos se conservan mientras sea cliente activo. Puede solicitar su eliminacion en cualquier momento.</p>
+          <p><strong>Derechos:</strong> Puede ejercer sus derechos de acceso, rectificacion, supresion, oposicion y portabilidad contactando con la barberia.</p>
+          <p><strong>No se ceden datos a terceros</strong> salvo obligacion legal.</p>
+        </div>
+        <button id="rgpd-close-btn">Cerrar</button>
+      </div>
+    </div>
+
     <!-- Modal registro -->
     <div id="register-modal" class="modal">
       <div class="modal-box">
@@ -49,6 +66,10 @@
         <input id="reg-nombre" type="text" placeholder="Nombre" maxlength="50" />
         <input id="reg-apellido" type="text" placeholder="Apellido" maxlength="50" />
         <input id="reg-telefono" type="tel" placeholder="Telefono (ej: 612345678)" maxlength="15" />
+        <label class="rgpd-label">
+          <input id="reg-rgpd" type="checkbox" />
+          He leido y acepto la <a href="#" id="rgpd-link">politica de privacidad</a>
+        </label>
         <button id="reg-btn">Empezar</button>
       </div>
     </div>
