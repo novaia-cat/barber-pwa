@@ -400,6 +400,38 @@ async function executeBooking() {
   }
 }
 
+// ── Ver mis citas ─────────────────────────────────────────────────────
+async function fetchMyCitas() {
+  const typing = showTyping();
+  chatInput.disabled = true;
+  sendBtn.disabled = true;
+  try {
+    const res = await fetch(WEBHOOK_CHAT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        barber_id: barberId,
+        telefono:  session.telefono,
+        nombre:    session.nombre,
+        apellido:  session.apellido,
+        action:    'my_appointments',
+        mensaje:   ''
+      })
+    });
+    const data = await res.json();
+    typing.remove();
+    addBubble(data.respuesta || 'No se pudieron cargar tus citas.', 'bot');
+    renderQuickReplies(INITIAL_REPLIES);
+  } catch {
+    typing.remove();
+    addBubble('Error de conexion. Intentalo de nuevo.', 'bot');
+    renderQuickReplies(INITIAL_REPLIES);
+  } finally {
+    chatInput.disabled = false;
+    sendBtn.disabled = false;
+  }
+}
+
 // ── Enviar mensaje ────────────────────────────────────────────────────
 async function sendMessage(text) {
   removeActiveQuickReplies();
@@ -417,8 +449,7 @@ async function sendMessage(text) {
     return;
   }
   if (text === 'Ver mis citas') {
-    addBubble('La consulta de citas propias estara disponible pronto.', 'bot');
-    renderQuickReplies(INITIAL_REPLIES);
+    await fetchMyCitas();
     return;
   }
 
