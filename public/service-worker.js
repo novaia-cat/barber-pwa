@@ -1,4 +1,4 @@
-const CACHE_NAME = 'barber-pwa-v1';
+const CACHE_NAME = 'barber-pwa-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -12,7 +12,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
   );
-  self.skipWaiting();
+  // No skipWaiting aquí — esperamos confirmación del usuario
 });
 
 // Activar: limpiar caches viejas
@@ -51,6 +51,11 @@ self.addEventListener('push', event => {
       vibrate: [200, 100, 200]
     })
   );
+});
+
+// Mensaje desde la app: activar nuevo SW inmediatamente
+self.addEventListener('message', event => {
+  if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
 
 // Click en notificacion: abrir la app

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#1a1a2e" />
   <title>Barber Chat</title>
   <link rel="manifest" href="/manifest.json" />
-  <link rel="stylesheet" href="/css/style.css?v=6" />
+  <link rel="stylesheet" href="/css/style.css?v=7" />
 </head>
 <body>
 
@@ -33,7 +33,20 @@
         <span id="menu-user-name">-</span>
         <span id="menu-user-phone">-</span>
       </div>
+      <button id="about-btn">Acerca de</button>
       <button id="logout-btn">Cerrar sesion</button>
+    </div>
+
+    <!-- Modal about -->
+    <div id="about-modal" class="modal">
+      <div class="modal-box about-box">
+        <div class="about-app-name">Barber Bot</div>
+        <img class="about-logo" src="https://novaia.cat/wp-content/uploads/2026/02/novaia_logo.png" alt="Novaia" />
+        <p class="about-tagline">Created &amp; designed by</p>
+        <a class="about-link" href="https://novaia.cat" target="_blank" rel="noopener">novaia.cat</a>
+        <p class="about-copyright">&copy; 2026 Novaia. Todos los derechos reservados.</p>
+        <button id="about-close-btn">Cerrar</button>
+      </div>
     </div>
 
     <!-- Mensajes -->
@@ -50,6 +63,12 @@
       />
       <button id="send-btn" disabled>&#9658;</button>
     </footer>
+
+    <!-- Banner de actualización -->
+    <div id="update-banner">
+      <span>Nueva version disponible</span>
+      <button id="update-btn">Actualizar</button>
+    </div>
 
     <!-- Badge tier free -->
     <div id="novaia-badge" style="display:none">
@@ -91,6 +110,6 @@
 
   </div>
 
-  <script src="/js/app.js?v=6"></script>
+  <script src="/js/app.js?v=7"></script>
 </body>
 </html>

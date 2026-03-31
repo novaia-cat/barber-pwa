@@ -153,6 +153,23 @@ body {
   color: var(--color-text-light);
 }
 
+#about-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#about-btn:hover {
+  background: #f7f7f7;
+}
+
 #logout-btn {
   width: 100%;
   padding: 12px 16px;
@@ -167,6 +184,61 @@ body {
 
 #logout-btn:hover {
   background: #fff5f5;
+}
+
+/* About modal */
+.about-box {
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.about-app-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.5px;
+}
+
+.about-logo {
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+  margin: 4px 0;
+}
+
+.about-tagline {
+  font-size: 0.82rem;
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+.about-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+  text-decoration: none;
+}
+
+.about-link:hover {
+  text-decoration: underline;
+}
+
+.about-copyright {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  margin-top: 4px;
+}
+
+#about-close-btn {
+  padding: 10px 24px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-top: 6px;
 }
 
 /* Mensajes */
@@ -288,6 +360,36 @@ body {
 #send-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* Banner actualización */
+#update-banner {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+#update-banner.visible {
+  display: flex;
+}
+
+#update-btn {
+  padding: 6px 14px;
+  background: var(--color-secondary);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Badge Novaia */

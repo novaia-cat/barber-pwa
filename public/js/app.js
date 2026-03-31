@@ -34,6 +34,9 @@ const menuDropdown = document.getElementById('menu-dropdown');
 const menuUserName = document.getElementById('menu-user-name');
 const menuUserPhone= document.getElementById('menu-user-phone');
 const logoutBtn    = document.getElementById('logout-btn');
+const aboutBtn     = document.getElementById('about-btn');
+const aboutModal   = document.getElementById('about-modal');
+const aboutCloseBtn= document.getElementById('about-close-btn');
 
 // ── RGPD modal ────────────────────────────────────────────────────────
 rgpdLink.addEventListener('click', e => { e.preventDefault(); rgpdModal.classList.add('active'); });
@@ -72,6 +75,13 @@ document.addEventListener('click', e => {
     menuDropdown.classList.remove('open');
   }
 });
+
+aboutBtn.addEventListener('click', () => {
+  menuDropdown.classList.remove('open');
+  aboutModal.classList.add('active');
+});
+
+aboutCloseBtn.addEventListener('click', () => { aboutModal.classList.remove('active'); });
 
 logoutBtn.addEventListener('click', () => {
   if (confirm('Cerrar sesion?')) {
@@ -565,9 +575,31 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
 }
 
-// ── Service Worker ────────────────────────────────────────────────────
+// ── Service Worker + auto-update ──────────────────────────────────────
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+  const updateBanner = document.getElementById('update-banner');
+  const updateBtn    = document.getElementById('update-btn');
+  let pendingSW = null;
+
+  navigator.serviceWorker.register('/service-worker.js').then(reg => {
+    reg.onupdatefound = () => {
+      const sw = reg.installing;
+      sw.onstatechange = () => {
+        if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+          pendingSW = sw;
+          updateBanner.classList.add('visible');
+        }
+      };
+    };
+  }).catch(() => {});
+
+  updateBtn.addEventListener('click', () => {
+    if (pendingSW) pendingSW.postMessage('SKIP_WAITING');
+  });
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    location.reload();
+  });
 }
 
 // ── Init ──────────────────────────────────────────────────────────────
