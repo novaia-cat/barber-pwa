@@ -61,7 +61,7 @@ window.addEventListener('appinstalled', () => {
   deferredInstallPrompt = null;
 });
 
-// ── Header menu (logout + user info) ─────────────────────────────────
+// ── Header menu ───────────────────────────────────────────────────────
 menuBtn.addEventListener('click', e => {
   e.stopPropagation();
   menuDropdown.classList.toggle('open');
@@ -89,24 +89,24 @@ function updateHeaderUser() {
 }
 
 // ── Keyboard / viewport fix ───────────────────────────────────────────
-// Cuando el teclado virtual aparece en movil, ajusta la altura del app
-// para que el footer siempre sea visible.
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', () => {
     const vh = window.visualViewport.height;
     document.getElementById('app').style.height = vh + 'px';
-    // Scroll al ultimo mensaje
     chatMessages.scrollTop = chatMessages.scrollHeight;
   });
 }
 
 // ── Config desde n8n ─────────────────────────────────────────────────
+let servicesCache = [];
+
 async function loadConfig() {
   try {
     const res = await fetch(WEBHOOK_CONFIG + '?barber_id=' + barberId);
     if (!res.ok) throw new Error('config error');
     const cfg = await res.json();
     applyConfig(cfg);
+    if (cfg.servicios && cfg.servicios.length) servicesCache = cfg.servicios;
   } catch {
     barberName.textContent = 'Barberia';
   }
@@ -126,10 +126,6 @@ function applyConfig(cfg) {
 }
 
 // ── Quick replies ─────────────────────────────────────────────────────
-// El bot puede incluir al final de su respuesta:
-// [QUICK_REPLIES: opcion1 | opcion2 | opcion3]
-// La PWA extrae esas opciones, limpia el texto y renderiza botones.
-
 function parseQuickReplies(text) {
   const match = text.match(/\[QUICK_REPLIES:\s*([^\]]+)\]/i);
   if (!match) return { text: text.trim(), replies: [] };
@@ -160,7 +156,7 @@ function renderQuickReplies(replies) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// ── Markdown básico (negritas + saltos de línea) ──────────────────────
+// ── Markdown básico ───────────────────────────────────────────────────
 function markdownToHtml(text) {
   return text
     .replace(/&/g, '&amp;')
@@ -188,14 +184,245 @@ function showTyping() {
   return addBubble('Escribiendo...', 'typing');
 }
 
-// ── Enviar mensaje a n8n ──────────────────────────────────────────────
+// ── Fechas (zona Europe/Madrid) ───────────────────────────────────────
+function getDateISO(offsetDays) {
+  const fmt = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid' });
+  const today = fmt.format(new Date());
+  const d = new Date(today + 'T12:00:00');
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().slice(0, 10);
+}
+
+function formatDateDisplay(iso) {
+  const [, m, d] = iso.split('-').map(Number);
+  const date = new Date(iso + 'T12:00:00');
+  const dias  = ['dom','lun','mar','mie','jue','vie','sab'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio',
+                 'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return dias[date.getDay()] + ' ' + d + ' de ' + meses[m - 1];
+}
+
+// ── Booking state machine ─────────────────────────────────────────────
+// booking = null (idle) | { step, service, fecha, fechaDisplay, hora }
+// steps: 'service' | 'date' | 'date_picker' | 'slots' | 'confirm'
+let booking = null;
+
+const INITIAL_REPLIES = ['Reservar cita', 'Cancelar cita', 'Ver mis citas'];
+
+function serviceLabel(svc) {
+  return svc.nombre + ' (' + svc.duracion_min + 'min - ' + svc.precio + 'EUR)';
+}
+
+function startBooking() {
+  booking = { step: 'service' };
+  const services = servicesCache.length
+    ? servicesCache.map(serviceLabel)
+    : ['Corte (30min - 15EUR)', 'Barba (20min - 10EUR)', 'Corte+Barba (45min - 22EUR)', 'Tinte (90min - 45EUR)'];
+  addBubble('Que servicio quieres?', 'bot');
+  renderQuickReplies(services);
+}
+
+function cancelBooking(msg) {
+  booking = null;
+  addBubble(msg || 'De acuerdo, empezamos de nuevo.', 'bot');
+  renderQuickReplies(INITIAL_REPLIES);
+}
+
+async function handleBookingStep(text) {
+  if (!booking) return false;
+
+  // ── PASO 1: elegir servicio ──────────────────────────────────────────
+  if (booking.step === 'service') {
+    const svc = servicesCache.find(s => text.toLowerCase().includes(s.nombre.toLowerCase()))
+      || servicesCache.find(s => serviceLabel(s) === text);
+    if (!svc) return false; // texto libre no reconocido → AI Agent
+    booking.service = svc;
+    booking.step = 'date';
+    addBubble('Para cuando?', 'bot');
+    renderQuickReplies(['Hoy', 'Manana', 'Pasado manana', 'Otro dia']);
+    return true;
+  }
+
+  // ── PASO 2: elegir fecha ─────────────────────────────────────────────
+  if (booking.step === 'date') {
+    const dateMap = { 'Hoy': 0, 'Manana': 1, 'Pasado manana': 2 };
+    if (text in dateMap) {
+      const iso = getDateISO(dateMap[text]);
+      booking.fecha = iso;
+      booking.fechaDisplay = text.toLowerCase() + ' (' + formatDateDisplay(iso) + ')';
+      booking.step = 'slots';
+      await fetchAndShowSlots(iso);
+      return true;
+    }
+    if (text === 'Otro dia') {
+      booking.step = 'date_picker';
+      // Generar los próximos 7 días (excluyendo hoy/mañana/pasado)
+      const options = [];
+      for (let i = 3; i <= 9; i++) {
+        const iso = getDateISO(i);
+        const date = new Date(iso + 'T12:00:00');
+        if (date.getDay() === 0) continue; // sin domingos
+        options.push({ iso, label: formatDateDisplay(iso) });
+      }
+      addBubble('Que dia te viene bien?', 'bot');
+      renderQuickReplies(options.map(o => o.label));
+      // Guardar el mapa para poder resolver el label al ISO
+      booking.datePicker = options;
+      return true;
+    }
+    return false;
+  }
+
+  // ── PASO 2b: selector de dias ────────────────────────────────────────
+  if (booking.step === 'date_picker') {
+    const option = (booking.datePicker || []).find(o => o.label === text);
+    if (!option) return false;
+    booking.fecha = option.iso;
+    booking.fechaDisplay = option.label;
+    booking.step = 'slots';
+    await fetchAndShowSlots(option.iso);
+    return true;
+  }
+
+  // ── PASO 3: elegir hora ──────────────────────────────────────────────
+  if (booking.step === 'slots') {
+    if (!/^\d{2}:\d{2}$/.test(text)) return false;
+    booking.hora = text;
+    booking.step = 'confirm';
+    const msg = 'Confirmo: **' + booking.service.nombre + '** el ' + booking.fechaDisplay + ' a las **' + text + '**. Es correcto?';
+    addBubble(msg, 'bot');
+    renderQuickReplies(['Si, confirmar', 'No, cambiar algo']);
+    return true;
+  }
+
+  // ── PASO 4: confirmar ────────────────────────────────────────────────
+  if (booking.step === 'confirm') {
+    if (text === 'Si, confirmar') {
+      await executeBooking();
+      return true;
+    }
+    if (text === 'No, cambiar algo') {
+      cancelBooking('Sin problema, empezamos de nuevo.');
+      return true;
+    }
+    return false;
+  }
+
+  return false;
+}
+
+async function fetchAndShowSlots(fecha) {
+  const typing = showTyping();
+  chatInput.disabled = true;
+  sendBtn.disabled = true;
+  try {
+    const res = await fetch(WEBHOOK_CHAT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        barber_id:  barberId,
+        telefono:   session.telefono,
+        nombre:     session.nombre,
+        apellido:   session.apellido,
+        action:     'get_slots',
+        mensaje:    ''
+      })
+    });
+    const data = await res.json();
+    typing.remove();
+
+    const slotsDelDia = (data.slots || [])
+      .filter(s => s.fecha === fecha)
+      .map(s => s.hora);
+
+    if (!slotsDelDia.length) {
+      addBubble('No hay horas disponibles ese dia. Elige otro.', 'bot');
+      booking.step = 'date';
+      renderQuickReplies(['Hoy', 'Manana', 'Pasado manana', 'Otro dia']);
+    } else {
+      addBubble('Horas disponibles:', 'bot');
+      renderQuickReplies(slotsDelDia);
+    }
+  } catch {
+    typing.remove();
+    addBubble('Error al consultar disponibilidad. Intentalo de nuevo.', 'bot');
+    booking.step = 'date';
+    renderQuickReplies(['Hoy', 'Manana', 'Pasado manana', 'Otro dia']);
+  } finally {
+    chatInput.disabled = false;
+    sendBtn.disabled = false;
+  }
+}
+
+async function executeBooking() {
+  const typing = showTyping();
+  chatInput.disabled = true;
+  sendBtn.disabled = true;
+  const svc  = booking.service;
+  const fecha_hora = booking.fecha + 'T' + booking.hora + ':00';
+  try {
+    const res = await fetch(WEBHOOK_CHAT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        barber_id:   barberId,
+        telefono:    session.telefono,
+        nombre:      session.nombre,
+        apellido:    session.apellido,
+        action:      'book',
+        servicio_id: svc.id,
+        fecha_hora:  fecha_hora,
+        mensaje:     ''
+      })
+    });
+    const data = await res.json();
+    typing.remove();
+    booking = null;
+    addBubble(data.respuesta || 'Cita reservada! Hasta pronto.', 'bot');
+    renderQuickReplies(INITIAL_REPLIES);
+  } catch {
+    typing.remove();
+    addBubble('Error al reservar. Intentalo de nuevo.', 'bot');
+    renderQuickReplies(['Si, confirmar', 'No, cambiar algo']);
+  } finally {
+    chatInput.disabled = false;
+    sendBtn.disabled = false;
+  }
+}
+
+// ── Enviar mensaje ────────────────────────────────────────────────────
 async function sendMessage(text) {
   removeActiveQuickReplies();
   addBubble(text, 'user');
   chatInput.value = '';
+
+  // Opciones del menú principal — gestionadas por la PWA
+  if (text === 'Reservar cita') {
+    startBooking();
+    return;
+  }
+  if (text === 'Cancelar cita') {
+    addBubble('La cancelacion aun no esta disponible online. Por favor, llama al local.', 'bot');
+    renderQuickReplies(INITIAL_REPLIES);
+    return;
+  }
+  if (text === 'Ver mis citas') {
+    addBubble('La consulta de citas propias estara disponible pronto.', 'bot');
+    renderQuickReplies(INITIAL_REPLIES);
+    return;
+  }
+
+  // Flujo de reserva guiado — gestionado por la PWA
+  if (booking) {
+    const handled = await handleBookingStep(text);
+    if (handled) return;
+    // Texto no reconocido en el flujo → salir y dejar al AI Agent
+    booking = null;
+  }
+
+  // Texto libre → AI Agent
   chatInput.disabled = true;
   sendBtn.disabled = true;
-
   const typing = showTyping();
 
   try {
@@ -257,7 +484,7 @@ regBtn.addEventListener('click', async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ barber_id: barberId, telefono, nombre, apellido, mensaje: 'hola' })
     });
-    const data = await res.json();
+    await res.json();
 
     session = { nombre, apellido, telefono };
     localStorage.setItem('barber_session_' + barberId, JSON.stringify(session));
@@ -266,10 +493,8 @@ regBtn.addEventListener('click', async () => {
     enableChat();
     updateHeaderUser();
 
-    const rawText = data.respuesta || ('Hola ' + nombre + ', en que puedo ayudarte?');
-    const { text: cleanText, replies } = parseQuickReplies(rawText);
-    addBubble(cleanText, 'bot');
-    renderQuickReplies(replies.length ? replies : ['Reservar cita', 'Cancelar cita', 'Ver mis citas']);
+    addBubble('Hola ' + nombre + ', en que puedo ayudarte?', 'bot');
+    renderQuickReplies(INITIAL_REPLIES);
 
     subscribePush();
   } catch {
@@ -353,7 +578,7 @@ if ('serviceWorker' in navigator) {
     enableChat();
     updateHeaderUser();
     addBubble('Hola ' + session.nombre + ', en que puedo ayudarte?', 'bot');
-    renderQuickReplies(['Reservar cita', 'Cancelar cita', 'Ver mis citas']);
+    renderQuickReplies(INITIAL_REPLIES);
   } else {
     showRegisterModal();
   }
