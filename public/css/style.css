@@ -412,6 +412,49 @@ body {
   text-decoration: none;
 }
 
+/* Lista de citas con botón cancelar */
+.citas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 14px 4px;
+  align-items: flex-start;
+  max-width: 95%;
+}
+
+.cita-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.cita-label {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.cancel-cita-btn {
+  padding: 5px 12px;
+  border: 1.5px solid #cc3333;
+  background: #fff;
+  color: #cc3333;
+  border-radius: 16px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cancel-cita-btn:active,
+.cancel-cita-btn:hover {
+  background: #cc3333;
+  color: #fff;
+}
+
 /* Modal registro */
 .modal {
   display: none;

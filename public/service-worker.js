@@ -1,4 +1,4 @@
-const CACHE_NAME = 'barber-pwa-v8';
+const CACHE_NAME = 'barber-pwa-v9';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

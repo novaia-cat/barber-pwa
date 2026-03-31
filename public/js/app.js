@@ -145,7 +145,7 @@ function parseQuickReplies(text) {
 }
 
 function removeActiveQuickReplies() {
-  document.querySelectorAll('.quick-replies').forEach(el => el.remove());
+  document.querySelectorAll('.quick-replies, .citas-list').forEach(el => el.remove());
 }
 
 function renderQuickReplies(replies) {
@@ -421,10 +421,81 @@ async function fetchMyCitas() {
     const data = await res.json();
     typing.remove();
     addBubble(data.respuesta || 'No se pudieron cargar tus citas.', 'bot');
-    renderQuickReplies(INITIAL_REPLIES);
+    if (data.citas && data.citas.length) {
+      renderCitasWithCancel(data.citas);
+    } else {
+      renderQuickReplies(INITIAL_REPLIES);
+    }
   } catch {
     typing.remove();
     addBubble('Error de conexion. Intentalo de nuevo.', 'bot');
+    renderQuickReplies(INITIAL_REPLIES);
+  } finally {
+    chatInput.disabled = false;
+    sendBtn.disabled = false;
+  }
+}
+
+function renderCitasWithCancel(citas) {
+  const container = document.createElement('div');
+  container.className = 'citas-list';
+  citas.forEach(cita => {
+    const row = document.createElement('div');
+    row.className = 'cita-row';
+    const label = document.createElement('span');
+    label.className = 'cita-label';
+    label.textContent = cita.display;
+    const btn = document.createElement('button');
+    btn.className = 'cancel-cita-btn';
+    btn.textContent = 'Cancelar';
+    btn.addEventListener('click', () => {
+      removeActiveQuickReplies();
+      cancelCita(cita.id, cita.display);
+    });
+    row.appendChild(label);
+    row.appendChild(btn);
+    container.appendChild(row);
+  });
+  const backBtn = document.createElement('button');
+  backBtn.className = 'qr-btn';
+  backBtn.textContent = 'Volver';
+  backBtn.addEventListener('click', () => {
+    removeActiveQuickReplies();
+    renderQuickReplies(INITIAL_REPLIES);
+  });
+  container.appendChild(backBtn);
+  chatMessages.appendChild(container);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function cancelCita(citaId, display) {
+  if (!confirm('Cancelar ' + display + '?')) {
+    addBubble('De acuerdo, no se cancela nada.', 'bot');
+    renderQuickReplies(INITIAL_REPLIES);
+    return;
+  }
+  addBubble('Cancelando tu cita...', 'bot');
+  chatInput.disabled = true;
+  sendBtn.disabled = true;
+  try {
+    const res = await fetch(WEBHOOK_CHAT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        barber_id: barberId,
+        telefono:  session.telefono,
+        nombre:    session.nombre,
+        apellido:  session.apellido,
+        action:    'cancel_appointment',
+        cita_id:   citaId,
+        mensaje:   ''
+      })
+    });
+    const data = await res.json();
+    addBubble(data.respuesta || 'Cita cancelada.', 'bot');
+    renderQuickReplies(INITIAL_REPLIES);
+  } catch {
+    addBubble('Error al cancelar. Intentalo de nuevo.', 'bot');
     renderQuickReplies(INITIAL_REPLIES);
   } finally {
     chatInput.disabled = false;
@@ -444,8 +515,7 @@ async function sendMessage(text) {
     return;
   }
   if (text === 'Cancelar cita') {
-    addBubble('La cancelacion aun no esta disponible online. Por favor, llama al local.', 'bot');
-    renderQuickReplies(INITIAL_REPLIES);
+    await fetchMyCitas();
     return;
   }
   if (text === 'Ver mis citas') {
