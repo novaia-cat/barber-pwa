@@ -222,6 +222,12 @@ body {
   max-width: 95%;
 }
 
+.quick-replies.column {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
 .qr-btn {
   padding: 7px 14px;
   border: 1.5px solid var(--color-secondary);

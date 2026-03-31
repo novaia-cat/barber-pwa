@@ -145,7 +145,7 @@ function removeActiveQuickReplies() {
 function renderQuickReplies(replies) {
   if (!replies.length) return;
   const container = document.createElement('div');
-  container.className = 'quick-replies';
+  container.className = 'quick-replies' + (replies.length <= 5 ? ' column' : '');
   replies.forEach(label => {
     const btn = document.createElement('button');
     btn.className = 'qr-btn';
@@ -160,11 +160,25 @@ function renderQuickReplies(replies) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+// ── Markdown básico (negritas + saltos de línea) ──────────────────────
+function markdownToHtml(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
 // ── Burbujas ──────────────────────────────────────────────────────────
 function addBubble(text, type) {
   const div = document.createElement('div');
   div.className = 'bubble ' + type;
-  div.textContent = text;
+  if (type === 'bot') {
+    div.innerHTML = markdownToHtml(text);
+  } else {
+    div.textContent = text;
+  }
   chatMessages.appendChild(div);
   chatMessages.scrollTop = chatMessages.scrollHeight;
   return div;
@@ -255,7 +269,7 @@ regBtn.addEventListener('click', async () => {
     const rawText = data.respuesta || ('Hola ' + nombre + ', en que puedo ayudarte?');
     const { text: cleanText, replies } = parseQuickReplies(rawText);
     addBubble(cleanText, 'bot');
-    renderQuickReplies(replies);
+    renderQuickReplies(replies.length ? replies : ['Reservar cita', 'Ver disponibilidad', 'Cancelar cita', 'Ver mis citas']);
 
     subscribePush();
   } catch {
@@ -338,10 +352,8 @@ if ('serviceWorker' in navigator) {
   if (session) {
     enableChat();
     updateHeaderUser();
-    const greeting = 'Hola ' + session.nombre + ', en que puedo ayudarte?';
-    const { text: cleanText, replies } = parseQuickReplies(greeting);
-    addBubble(cleanText, 'bot');
-    renderQuickReplies(replies);
+    addBubble('Hola ' + session.nombre + ', en que puedo ayudarte?', 'bot');
+    renderQuickReplies(['Reservar cita', 'Ver disponibilidad', 'Cancelar cita', 'Ver mis citas']);
   } else {
     showRegisterModal();
   }
