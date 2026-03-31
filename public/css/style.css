@@ -207,6 +207,12 @@ body {
   margin: 4px 0;
 }
 
+.about-version {
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+  margin-top: -6px;
+}
+
 .about-tagline {
   font-size: 0.82rem;
   color: var(--color-text-light);
