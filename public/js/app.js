@@ -269,7 +269,7 @@ regBtn.addEventListener('click', async () => {
     const rawText = data.respuesta || ('Hola ' + nombre + ', en que puedo ayudarte?');
     const { text: cleanText, replies } = parseQuickReplies(rawText);
     addBubble(cleanText, 'bot');
-    renderQuickReplies(replies.length ? replies : ['Reservar cita', 'Ver disponibilidad', 'Cancelar cita', 'Ver mis citas']);
+    renderQuickReplies(replies.length ? replies : ['Reservar cita', 'Cancelar cita', 'Ver mis citas']);
 
     subscribePush();
   } catch {
@@ -353,7 +353,7 @@ if ('serviceWorker' in navigator) {
     enableChat();
     updateHeaderUser();
     addBubble('Hola ' + session.nombre + ', en que puedo ayudarte?', 'bot');
-    renderQuickReplies(['Reservar cita', 'Ver disponibilidad', 'Cancelar cita', 'Ver mis citas']);
+    renderQuickReplies(['Reservar cita', 'Cancelar cita', 'Ver mis citas']);
   } else {
     showRegisterModal();
   }
