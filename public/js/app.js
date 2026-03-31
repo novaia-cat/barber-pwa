@@ -441,7 +441,7 @@ async function sendMessage(text) {
     const data = await res.json();
     typing.remove();
 
-    const rawText = data.respuesta || 'No entendi eso. Prueba con "reservar" o "ayuda".';
+    const rawText = data.respuesta || data.output || 'No entendi eso. Prueba con "reservar" o "ayuda".';
     const { text: cleanText, replies } = parseQuickReplies(rawText);
     addBubble(cleanText, 'bot');
     renderQuickReplies(replies);
