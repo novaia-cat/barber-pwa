@@ -124,7 +124,7 @@ async function loadConfig() {
 
 function applyConfig(cfg) {
   if (cfg.nombre) barberName.textContent = cfg.nombre;
-  if (cfg.logo_url) { logo.src = cfg.logo_url; logo.alt = cfg.nombre || 'Logo'; }
+  if (cfg.logo_url) { logo.alt = cfg.nombre || 'Logo'; logo.onload = () => { logo.style.display = 'block'; }; logo.onerror = () => { logo.style.display = 'none'; }; logo.src = cfg.logo_url; }
   if (cfg.color_primary) document.documentElement.style.setProperty('--color-primary', cfg.color_primary);
   if (cfg.color_secondary) {
     document.documentElement.style.setProperty('--color-secondary', cfg.color_secondary);
