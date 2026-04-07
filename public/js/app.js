@@ -38,25 +38,110 @@ const logoutBtn     = document.getElementById('logout-btn');
 const aboutBtn      = document.getElementById('about-btn');
 const aboutModal    = document.getElementById('about-modal');
 const aboutCloseBtn = document.getElementById('about-close-btn');
-const viewLanding   = document.getElementById('view-landing');
-const viewChat      = document.getElementById('view-chat');
+const viewLanding      = document.getElementById('view-landing');
+const viewSlots        = document.getElementById('view-slots');
+const viewSummary      = document.getElementById('view-summary');
+const viewConfirmation = document.getElementById('view-confirmation');
+const viewCitas        = document.getElementById('view-citas');
+const viewChat         = document.getElementById('view-chat');
+const citasLoading  = document.getElementById('citas-loading');
+const citasContainer= document.getElementById('citas-container');
+const chatHeader    = document.getElementById('chat-header');
 const backBtn       = document.getElementById('back-btn');
 const headerTitle   = document.getElementById('header-title');
 const servicesList  = document.getElementById('services-list');
 const misCitasBtn   = document.getElementById('mis-citas-btn');
+const cancelarBtn   = document.getElementById('cancelar-btn');
+const slotsLoading  = document.getElementById('slots-loading');
+const slotsContainer= document.getElementById('slots-container');
+const selectSlotBtn = document.getElementById('select-slot-btn');
+const confirmBtn    = document.getElementById('confirm-booking-btn');
+const changeSlotBtn = document.getElementById('change-slot-btn');
 
 // ── Vista switching ───────────────────────────────────────────────
-function showLandingView() {
-  viewLanding.style.display = 'flex';
+function hideAllViews() {
+  viewLanding.style.display = 'none';
+  viewSlots.classList.remove('active');
+  viewSummary.classList.remove('active');
+  viewConfirmation.classList.remove('active');
+  viewCitas.classList.remove('active');
   viewChat.classList.remove('active');
+}
+
+function showLandingView() {
+  hideAllViews();
+  viewLanding.style.display = 'flex';
+  chatHeader.classList.add('landing-mode');
   backBtn.style.display = 'none';
   headerTitle.style.display = 'none';
   booking = null;
 }
 
+function showSlotsView(title) {
+  hideAllViews();
+  viewSlots.classList.add('active');
+  chatHeader.classList.remove('landing-mode');
+  backBtn.style.display = 'flex';
+  headerTitle.style.display = 'block';
+  barberNameHdr.textContent = barberNameText;
+}
+
+function showSummaryView() {
+  hideAllViews();
+  viewSummary.classList.add('active');
+  chatHeader.classList.remove('landing-mode');
+  backBtn.style.display = 'flex';
+  headerTitle.style.display = 'block';
+  barberNameHdr.textContent = 'Resumen';
+}
+
+let confirmOkAction = null;
+
+function showConfirmationView(type = 'booking', onOk = showLandingView) {
+  hideAllViews();
+  viewConfirmation.classList.add('active');
+  chatHeader.classList.remove('landing-mode');
+  backBtn.style.display = 'none';
+  headerTitle.style.display = 'none';
+  confirmOkAction = onOk;
+
+  const iconCheck  = document.getElementById('icon-check');
+  const iconCancel = document.getElementById('icon-cancel');
+  const okBtn      = document.getElementById('confirm-ok-btn');
+
+  if (type === 'cancel') {
+    iconCheck.style.display  = 'none';
+    iconCancel.style.display = 'block';
+    document.getElementById('confirm-title').textContent = 'Cita cancelada';
+    okBtn.textContent = 'Entendido';
+  } else {
+    iconCheck.style.display  = 'block';
+    iconCancel.style.display = 'none';
+    document.getElementById('confirm-title').textContent = 'Perfecto!';
+    okBtn.textContent = 'Vale, perfecto!';
+  }
+
+  // Resetear animaciones
+  viewConfirmation.querySelectorAll('[class*="checkmark-"],[class*="cancel-"]').forEach(el => {
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = '';
+  });
+}
+
+function showCitasView() {
+  hideAllViews();
+  viewCitas.classList.add('active');
+  chatHeader.classList.remove('landing-mode');
+  backBtn.style.display = 'flex';
+  headerTitle.style.display = 'block';
+  barberNameHdr.textContent = barberNameText;
+}
+
 function showChatView(title) {
-  viewLanding.style.display = 'none';
+  hideAllViews();
   viewChat.classList.add('active');
+  chatHeader.classList.remove('landing-mode');
   backBtn.style.display = 'flex';
   headerTitle.style.display = 'block';
   if (title) barberNameHdr.textContent = title;
@@ -71,36 +156,11 @@ function clearChat() {
 backBtn.addEventListener('click', handleBack);
 
 function handleBack() {
-  if (!booking) {
-    showLandingView();
+  if (viewSummary.classList.contains('active')) {
+    showSlotsView('¿Cuando te va bien?');
     return;
   }
-  switch (booking.step) {
-    case 'date':
-    case 'date_picker':
-      showLandingView();
-      break;
-    case 'slots': {
-      booking.step = 'date';
-      clearChat();
-      addBubble('Para cuando quieres la cita?', 'bot');
-      renderQuickReplies(['Hoy', 'Manana', 'Pasado manana', 'Otro dia']);
-      break;
-    }
-    case 'confirm': {
-      booking.step = 'slots';
-      clearChat();
-      if (booking.cachedSlots && booking.cachedSlots.length) {
-        addBubble('Horas disponibles para ' + booking.fechaDisplay + ':', 'bot');
-        renderQuickReplies(booking.cachedSlots);
-      } else {
-        fetchAndShowSlots(booking.fecha);
-      }
-      break;
-    }
-    default:
-      showLandingView();
-  }
+  showLandingView();
 }
 
 // ── RGPD modal ────────────────────────────────────────────────────
@@ -194,8 +254,9 @@ function applyConfig(cfg) {
     barberNameText = cfg.nombre;
   }
   if (cfg.logo_url) {
+    const placeholder = document.getElementById('logo-placeholder');
     logo.alt = cfg.nombre || 'Logo';
-    logo.onload  = () => { logo.style.display = 'block'; };
+    logo.onload  = () => { logo.style.display = 'block'; if (placeholder) placeholder.style.display = 'none'; };
     logo.onerror = () => { logo.style.display = 'none'; };
     logo.src = cfg.logo_url;
   }
@@ -275,11 +336,15 @@ function renderServiceCards() {
   });
 }
 
-// ── Mis citas (desde landing) ─────────────────────────────────────
+// ── Bottom bar (desde landing) ────────────────────────────────────
 misCitasBtn.addEventListener('click', async () => {
-  showChatView(barberNameText);
-  enableChat();
-  await fetchMyCitas();
+  showCitasView();
+  await fetchAndRenderCitas();
+});
+
+cancelarBtn.addEventListener('click', async () => {
+  showCitasView();
+  await fetchAndRenderCitas();
 });
 
 // ── Quick replies ─────────────────────────────────────────────────
@@ -359,122 +424,22 @@ function formatDateDisplay(iso) {
   return dias[date.getDay()] + ' ' + d + ' de ' + meses[m - 1];
 }
 
-// ── Booking state machine ─────────────────────────────────────────
-// booking = null | { step, service, fecha, fechaDisplay, hora, cachedSlots, datePicker }
-// steps: 'date' | 'date_picker' | 'slots' | 'confirm'
+// ── Booking ───────────────────────────────────────────────────────
+// booking = null | { service, fecha, hora, fechaDisplay }
 let booking = null;
 
-function startBookingWithService(svc) {
-  showChatView(barberNameText);
-  enableChat();
-  booking = { step: 'date', service: svc };
-  addBubble('Has elegido **' + svc.nombre + '**. Para cuando quieres la cita?', 'bot');
-  renderQuickReplies(['Hoy', 'Manana', 'Pasado manana', 'Otro dia']);
+const DAY_LABELS = ['Hoy', 'Manana', 'Pasado manana'];
+
+async function startBookingWithService(svc) {
+  booking = { service: svc };
+  selectSlotBtn.disabled = true;
+  showSlotsView('¿Cuando te va bien?');
+  await fetchAllSlots();
 }
 
-async function handleBookingStep(text) {
-  if (!booking) return false;
-
-  // ── PASO 1: elegir fecha ─────────────────────────────────────────
-  if (booking.step === 'date') {
-    const dateMap = { 'Hoy': 0, 'Manana': 1, 'Pasado manana': 2 };
-    if (text in dateMap) {
-      const iso = getDateISO(dateMap[text]);
-      booking.fecha = iso;
-      booking.fechaDisplay = text.toLowerCase() + ' (' + formatDateDisplay(iso) + ')';
-      booking.step = 'slots';
-      await fetchAndShowSlots(iso);
-      return true;
-    }
-    if (text === 'Otro dia') {
-      booking.step = 'date_picker';
-      const options = [];
-      for (let i = 3; i <= 9; i++) {
-        const iso = getDateISO(i);
-        const date = new Date(iso + 'T12:00:00');
-        if (date.getDay() === 0) continue;
-        options.push({ iso, label: formatDateDisplay(iso) });
-      }
-      addBubble('Que dia te viene bien?', 'bot');
-      renderQuickReplies(options.map(o => o.label));
-      booking.datePicker = options;
-      return true;
-    }
-    return false;
-  }
-
-  // ── PASO 1b: selector de dias ────────────────────────────────────
-  if (booking.step === 'date_picker') {
-    const option = (booking.datePicker || []).find(o => o.label === text);
-    if (!option) return false;
-    booking.fecha = option.iso;
-    booking.fechaDisplay = option.label;
-    booking.step = 'slots';
-    await fetchAndShowSlots(option.iso);
-    return true;
-  }
-
-  // ── PASO 2: elegir hora ──────────────────────────────────────────
-  if (booking.step === 'slots') {
-    if (!/^\d{2}:\d{2}$/.test(text)) return false;
-    booking.hora = text;
-    booking.step = 'confirm';
-    showBookingSummary();
-    return true;
-  }
-
-  // ── PASO 3: confirmar ────────────────────────────────────────────
-  if (booking.step === 'confirm') {
-    if (text === 'Confirmar') {
-      await executeBooking();
-      return true;
-    }
-    if (text === 'Cambiar algo') {
-      handleBack();
-      return true;
-    }
-    return false;
-  }
-
-  return false;
-}
-
-function showBookingSummary() {
-  const svc = booking.service;
-
-  const summary = document.createElement('div');
-  summary.className = 'booking-summary';
-
-  function row(label, value, cls) {
-    const r = document.createElement('div');
-    r.className = 'summary-row';
-    const l = document.createElement('span');
-    l.className = 'summary-label';
-    l.textContent = label;
-    const v = document.createElement('span');
-    v.className = cls || 'summary-value';
-    v.textContent = value;
-    r.appendChild(l);
-    r.appendChild(v);
-    return r;
-  }
-
-  summary.appendChild(row('Servicio', svc.nombre));
-  summary.appendChild(row('Fecha', booking.fechaDisplay));
-  summary.appendChild(row('Hora', booking.hora));
-  summary.appendChild(row('Duracion', svc.duracion_min + ' min'));
-  summary.appendChild(row('Precio', svc.precio + '€', 'summary-price'));
-
-  chatMessages.appendChild(summary);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-
-  renderQuickReplies(['Confirmar', 'Cambiar algo']);
-}
-
-async function fetchAndShowSlots(fecha) {
-  const typing = showTyping();
-  chatInput.disabled = true;
-  sendBtn.disabled = true;
+async function fetchAllSlots() {
+  slotsLoading.style.display = 'flex';
+  slotsContainer.innerHTML = '';
   try {
     const res = await fetch(WEBHOOK_CHAT, {
       method: 'POST',
@@ -489,41 +454,115 @@ async function fetchAndShowSlots(fecha) {
       })
     });
     const data = await res.json();
-    typing.remove();
-
-    const slotsDelDia = (data.slots || [])
-      .filter(s => s.fecha === fecha)
-      .map(s => s.hora);
-
-    booking.cachedSlots = slotsDelDia;
-
-    if (!slotsDelDia.length) {
-      addBubble('No hay horas disponibles ese dia. Elige otro.', 'bot');
-      booking.step = 'date';
-      renderQuickReplies(['Hoy', 'Manana', 'Pasado manana', 'Otro dia']);
-    } else {
-      addBubble('Horas disponibles para ' + booking.fechaDisplay + ':', 'bot');
-      renderQuickReplies(slotsDelDia);
-    }
+    slotsLoading.style.display = 'none';
+    renderSlotsGrouped(data.slots || []);
   } catch {
-    typing.remove();
-    addBubble('Error al consultar disponibilidad. Intentalo de nuevo.', 'bot');
-    booking.step = 'date';
-    renderQuickReplies(['Hoy', 'Manana', 'Pasado manana', 'Otro dia']);
-  } finally {
-    chatInput.disabled = false;
-    sendBtn.disabled = false;
+    slotsLoading.style.display = 'none';
+    slotsContainer.innerHTML = '<p class="no-slots">Error al cargar disponibilidad. Vuelve a intentarlo.</p>';
   }
 }
 
+function renderSlotsGrouped(slots) {
+  slotsContainer.innerHTML = '';
+
+  // Agrupar por fecha
+  const byDate = {};
+  slots.forEach(s => {
+    if (!byDate[s.fecha]) byDate[s.fecha] = [];
+    byDate[s.fecha].push(s.hora);
+  });
+
+  const sortedDates = Object.keys(byDate).sort();
+
+  if (!sortedDates.length) {
+    slotsContainer.innerHTML = '<p class="no-slots">No hay disponibilidad proxima. Contacta con la barberia.</p>';
+    return;
+  }
+
+  // Mostrar primeros 3 dias con etiqueta Hoy/Manana/Pasado + el resto con fecha
+  const todayISO = getDateISO(0);
+  const tomorrowISO = getDateISO(1);
+  const dayAfterISO = getDateISO(2);
+
+  sortedDates.forEach((fecha, idx) => {
+    let label;
+    if (fecha === todayISO)     label = 'Hoy';
+    else if (fecha === tomorrowISO) label = 'Manana';
+    else if (fecha === dayAfterISO) label = 'Pasado manana';
+    else label = formatDateDisplay(fecha);
+
+    const section = document.createElement('div');
+    section.className = 'day-section';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'day-label';
+    titleEl.textContent = label;
+
+    const dateEl = document.createElement('div');
+    dateEl.className = 'day-date';
+    dateEl.textContent = formatDateDisplay(fecha);
+
+    const grid = document.createElement('div');
+    grid.className = 'slots-grid';
+
+    byDate[fecha].forEach(hora => {
+      const btn = document.createElement('button');
+      btn.className = 'slot-btn';
+      btn.textContent = hora;
+      btn.addEventListener('click', () => highlightSlot(btn, fecha, hora, label));
+      grid.appendChild(btn);
+    });
+
+    section.appendChild(titleEl);
+    if (label !== formatDateDisplay(fecha)) section.appendChild(dateEl);
+    section.appendChild(grid);
+    slotsContainer.appendChild(section);
+  });
+}
+
+function highlightSlot(btn, fecha, hora, fechaLabel) {
+  // Quitar selección anterior
+  document.querySelectorAll('.slot-btn.selected').forEach(b => b.classList.remove('selected'));
+  // Marcar el nuevo
+  btn.classList.add('selected');
+  // Guardar en booking pero no navegar aún
+  booking.fecha = fecha;
+  booking.hora = hora;
+  booking.fechaDisplay = fechaLabel + ', ' + formatDateDisplay(fecha);
+  // Habilitar botón
+  selectSlotBtn.disabled = false;
+}
+
+selectSlotBtn.addEventListener('click', () => {
+  if (!booking.fecha || !booking.hora) return;
+  renderSummary();
+  showSummaryView();
+});
+
+function renderSummary() {
+  const svc = booking.service;
+  document.getElementById('summary-icon').textContent = getServiceIcon(svc.nombre);
+  document.getElementById('summary-service-name').textContent = svc.nombre;
+  document.getElementById('summary-service-meta').textContent = svc.duracion_min + ' min · ' + svc.precio + '€';
+  document.getElementById('summary-fecha').textContent = booking.fechaDisplay;
+  document.getElementById('summary-hora').textContent = booking.hora;
+}
+
+confirmBtn.addEventListener('click', executeBooking);
+changeSlotBtn.addEventListener('click', () => showSlotsView('¿Cuando te va bien?'));
+document.getElementById('confirm-ok-btn').addEventListener('click', () => {
+  if (confirmOkAction) confirmOkAction();
+});
+
 async function executeBooking() {
-  const typing = showTyping();
-  chatInput.disabled = true;
-  sendBtn.disabled = true;
   const svc = booking.service;
   const fecha_hora = booking.fecha + 'T' + booking.hora + ':00';
+
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Reservando...';
+
   try {
-    const res = await fetch(WEBHOOK_CHAT, {
+    await fetch(WEBHOOK_CHAT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -537,28 +576,37 @@ async function executeBooking() {
         mensaje:     ''
       })
     });
-    const data = await res.json();
-    typing.remove();
 
-    addBubble(data.respuesta || 'Cita reservada! Hasta pronto.', 'bot');
+    // Montar mensaje de confirmación
+    const dias = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
+    const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const d = new Date(booking.fecha + 'T12:00:00');
+    const fechaTexto = dias[d.getDay()] + ' ' + d.getDate() + ' de ' + meses[d.getMonth()];
 
-    // Breve pausa y vuelve a la landing
-    setTimeout(() => showLandingView(), 2800);
+    document.getElementById('confirm-message').innerHTML =
+      'Nos vemos el proximo <strong>' + fechaTexto + ' a las ' + booking.hora + '</strong>'
+      + ' para tu <strong>' + svc.nombre + '</strong>. Te esperamos!';
+
+    showConfirmationView('booking', showLandingView);
   } catch {
-    typing.remove();
-    addBubble('Error al reservar. Intentalo de nuevo.', 'bot');
-    renderQuickReplies(['Confirmar', 'Cambiar algo']);
-  } finally {
-    chatInput.disabled = false;
-    sendBtn.disabled = false;
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Confirmar reserva';
+    showToast('Error al reservar. Intentalo de nuevo.');
   }
 }
 
-// ── Ver mis citas ─────────────────────────────────────────────────
-async function fetchMyCitas() {
-  const typing = showTyping();
-  chatInput.disabled = true;
-  sendBtn.disabled = true;
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:50px;font-size:0.84rem;z-index:999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.2)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2400);
+}
+
+// ── Mis citas (vista nativa) ──────────────────────────────────────
+async function fetchAndRenderCitas() {
+  citasLoading.style.display = 'flex';
+  citasContainer.innerHTML = '';
   try {
     const res = await fetch(WEBHOOK_CHAT, {
       method: 'POST',
@@ -573,104 +621,67 @@ async function fetchMyCitas() {
       })
     });
     const data = await res.json();
-    typing.remove();
+    citasLoading.style.display = 'none';
 
     if (data.citas && data.citas.length) {
-      addBubble('Tus proximas citas:', 'bot');
-      renderCitasWithCancel(data.citas);
+      renderCitaCards(data.citas);
     } else {
-      addBubble('No tienes citas proximas.', 'bot');
-      renderCitasBackBtn();
+      citasContainer.innerHTML = '<div class="citas-empty">No tienes citas proximas.<br>Reserva cuando quieras.</div>';
     }
   } catch {
-    typing.remove();
-    addBubble('Error de conexion. Intentalo de nuevo.', 'bot');
-    renderCitasBackBtn();
-  } finally {
-    chatInput.disabled = false;
-    sendBtn.disabled = false;
+    citasLoading.style.display = 'none';
+    citasContainer.innerHTML = '<div class="citas-empty">Error de conexion. Intentalo de nuevo.</div>';
   }
 }
 
 function parseCitaDisplay(display) {
-  // display format: "Corte — lun 7 de abril a las 10:00"
   const parts = display.split(' — ');
   return { servicio: parts[0] || display, fecha: parts[1] || '' };
 }
 
-function renderCitasWithCancel(citas) {
-  const container = document.createElement('div');
-  container.className = 'citas-list';
-
+function renderCitaCards(citas) {
+  citasContainer.innerHTML = '';
   citas.forEach(cita => {
     const { servicio, fecha } = parseCitaDisplay(cita.display);
 
     const card = document.createElement('div');
-    card.className = 'cita-card';
+    card.className = 'cita-card-new';
+
+    const iconBox = document.createElement('div');
+    iconBox.className = 'cita-icon-box';
+    iconBox.textContent = getServiceIcon(servicio);
 
     const info = document.createElement('div');
-    info.className = 'cita-info';
+    info.className = 'cita-info-block';
 
-    const svcEl = document.createElement('div');
-    svcEl.className = 'cita-servicio';
-    svcEl.textContent = servicio;
+    const nameEl = document.createElement('div');
+    nameEl.className = 'cita-servicio-name';
+    nameEl.textContent = servicio;
 
     const fechaEl = document.createElement('div');
-    fechaEl.className = 'cita-fecha';
+    fechaEl.className = 'cita-datetime';
     fechaEl.textContent = fecha || cita.display;
 
-    info.appendChild(svcEl);
+    info.appendChild(nameEl);
     info.appendChild(fechaEl);
 
     const btn = document.createElement('button');
-    btn.className = 'cancel-cita-btn';
+    btn.className = 'cita-cancel-btn';
     btn.textContent = 'Cancelar';
-    btn.addEventListener('click', () => {
-      container.remove();
-      cancelCita(cita.id, cita.display);
-    });
+    btn.addEventListener('click', () => cancelCitaNativa(cita.id, cita.display, card));
 
+    card.appendChild(iconBox);
     card.appendChild(info);
     card.appendChild(btn);
-    container.appendChild(card);
+    citasContainer.appendChild(card);
   });
-
-  const backBtn = document.createElement('button');
-  backBtn.className = 'citas-back-btn';
-  backBtn.textContent = 'Ver opciones';
-  backBtn.addEventListener('click', () => {
-    container.remove();
-    showLandingView();
-  });
-  container.appendChild(backBtn);
-
-  chatMessages.appendChild(container);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-function renderCitasBackBtn() {
-  const btn = document.createElement('button');
-  btn.className = 'citas-back-btn';
-  btn.textContent = 'Ver opciones';
-  btn.addEventListener('click', () => {
-    btn.remove();
-    showLandingView();
-  });
-  chatMessages.appendChild(btn);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-async function cancelCita(citaId, display) {
-  if (!confirm('Cancelar ' + display + '?')) {
-    addBubble('De acuerdo, no se cancela nada.', 'bot');
-    renderCitasBackBtn();
-    return;
-  }
-  addBubble('Cancelando tu cita...', 'bot');
-  chatInput.disabled = true;
-  sendBtn.disabled = true;
+async function cancelCitaNativa(citaId, display, cardEl) {
+  if (!confirm('Cancelar esta cita?')) return;
+  cardEl.style.opacity = '0.4';
   try {
-    const res = await fetch(WEBHOOK_CHAT, {
+    await fetch(WEBHOOK_CHAT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -683,30 +694,29 @@ async function cancelCita(citaId, display) {
         mensaje:   ''
       })
     });
-    const data = await res.json();
-    addBubble(data.respuesta || 'Cita cancelada.', 'bot');
-    renderCitasBackBtn();
+    cardEl.remove();
+    const { servicio, fecha } = parseCitaDisplay(display);
+    document.getElementById('confirm-message').innerHTML =
+      'Tu cita de <strong>' + servicio + '</strong>' +
+      (fecha ? ' del <strong>' + fecha + '</strong>' : '') +
+      ' ha sido cancelada. Cuando quieras puedes reservar de nuevo.';
+
+    const volverACitas = async () => {
+      showCitasView();
+      await fetchAndRenderCitas();
+    };
+    showConfirmationView('cancel', volverACitas);
   } catch {
-    addBubble('Error al cancelar. Intentalo de nuevo.', 'bot');
-    renderCitasBackBtn();
-  } finally {
-    chatInput.disabled = false;
-    sendBtn.disabled = false;
+    cardEl.style.opacity = '1';
+    showToast('Error al cancelar. Intentalo de nuevo.');
   }
 }
 
-// ── Enviar mensaje (texto libre → AI Agent) ───────────────────────
+// ── Enviar mensaje (texto libre → AI Agent, solo en vista chat) ───
 async function sendMessage(text) {
   removeActiveQuickReplies();
   addBubble(text, 'user');
   chatInput.value = '';
-
-  // Flujo de reserva guiado
-  if (booking) {
-    const handled = await handleBookingStep(text);
-    if (handled) return;
-    booking = null;
-  }
 
   // Texto libre → AI Agent
   chatInput.disabled = true;
@@ -878,6 +888,7 @@ if ('serviceWorker' in navigator) {
 (async function init() {
   await loadConfig();
 
+  chatHeader.classList.add('landing-mode');
   if (session) {
     updateHeaderUser();
     renderServiceCards();
