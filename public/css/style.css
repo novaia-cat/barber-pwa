@@ -65,6 +65,13 @@ body {
   justify-content: flex-end;
 }
 
+#chat-header.landing-mode #menu-btn,
+#chat-header.landing-mode #install-btn {
+  background: rgba(0,0,0,0.28);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
 #back-btn {
   background: none;
   border: none;
@@ -253,9 +260,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  /* Sube hasta el top cuando el header es absoluto */
+  overflow: hidden;
   margin-top: 0;
 }
 
@@ -263,7 +268,7 @@ body {
 #hero {
   position: relative;
   background: #1a1a1a;
-  background-image: var(--hero-img, url('https://as2.ftcdn.net/v2/jpg/02/44/67/79/1000_F_244677922_jpOXWgc4e5DM0w1dAaOiAR5XLmxyJqss.jpg'));
+  background-image: var(--hero-img, url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&q=80'));
   background-size: cover;
   background-position: center;
   min-height: 260px;
