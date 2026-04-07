@@ -37,57 +37,58 @@ body {
   box-shadow: 0 0 20px rgba(0,0,0,0.1);
 }
 
-/* Header */
+/* ── Header ──────────────────────────────────────────────────────── */
 #chat-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   padding: 10px 14px;
   background: var(--color-primary);
   color: #fff;
   flex-shrink: 0;
   position: relative;
   z-index: 10;
+  min-height: 54px;
 }
 
-#logo {
-  width: 38px;
-  height: 38px;
+#back-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.9);
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  display: none;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-#header-info {
-  display: flex;
-  flex-direction: column;
+#back-btn:hover { background: rgba(255,255,255,0.15); }
+
+#header-title {
   flex: 1;
   min-width: 0;
 }
 
-#barber-name {
+#barber-name-header {
   font-weight: 600;
   font-size: 0.95rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: block;
 }
 
-#header-status {
-  font-size: 0.72rem;
-  opacity: 0.75;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Header actions: install + menu */
 #header-actions {
   display: flex;
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 #install-btn,
@@ -108,15 +109,9 @@ body {
 }
 
 #install-btn:hover,
-#menu-btn:hover {
-  background: rgba(255,255,255,0.15);
-}
+#menu-btn:hover { background: rgba(255,255,255,0.15); }
 
-#install-btn {
-  display: none; /* shown only when beforeinstallprompt fires */
-}
-
-/* Dropdown menu */
+/* ── Dropdown menu ───────────────────────────────────────────────── */
 #menu-dropdown {
   display: none;
   position: absolute;
@@ -130,9 +125,7 @@ body {
   overflow: hidden;
 }
 
-#menu-dropdown.open {
-  display: block;
-}
+#menu-dropdown.open { display: block; }
 
 #menu-user-info {
   padding: 14px 16px 10px;
@@ -166,9 +159,7 @@ body {
   transition: background 0.15s;
 }
 
-#about-btn:hover {
-  background: #f7f7f7;
-}
+#about-btn:hover { background: #f7f7f7; }
 
 #logout-btn {
   width: 100%;
@@ -182,11 +173,9 @@ body {
   transition: background 0.15s;
 }
 
-#logout-btn:hover {
-  background: #fff5f5;
-}
+#logout-btn:hover { background: #fff5f5; }
 
-/* About modal */
+/* ── About modal ─────────────────────────────────────────────────── */
 .about-box {
   align-items: center;
   text-align: center;
@@ -226,9 +215,7 @@ body {
   text-decoration: none;
 }
 
-.about-link:hover {
-  text-decoration: underline;
-}
+.about-link:hover { text-decoration: underline; }
 
 .about-copyright {
   font-size: 0.75rem;
@@ -245,6 +232,215 @@ body {
   font-size: 0.9rem;
   cursor: pointer;
   margin-top: 6px;
+}
+
+/* ── Landing view ────────────────────────────────────────────────── */
+#view-landing {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hero */
+#hero {
+  position: relative;
+  background: var(--color-primary);
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 24px 20px 28px;
+  gap: 12px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+#hero-pattern {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 10% 90%, rgba(255,255,255,0.05) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+#logo {
+  width: auto;
+  height: 72px;
+  max-width: 160px;
+  object-fit: contain;
+  display: none;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+  position: relative;
+  z-index: 1;
+}
+
+#hero-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+#barber-name {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+
+#header-status {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.75);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4caf50;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Landing body */
+#landing-body {
+  flex: 1;
+  padding: 0 0 24px;
+}
+
+.section-header {
+  padding: 20px 20px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.2px;
+}
+
+/* Service cards */
+#services-list {
+  padding: 0 16px;
+}
+
+.service-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 4px;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.service-card:last-child {
+  border-bottom: none;
+}
+
+.service-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(233, 69, 96, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+.service-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.service-name {
+  font-size: 0.93rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.service-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+}
+
+.service-price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.service-book-btn {
+  padding: 8px 18px;
+  background: var(--color-secondary);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.service-book-btn:active {
+  opacity: 0.85;
+  transform: scale(0.97);
+}
+
+/* Landing actions */
+#landing-actions {
+  padding: 20px 20px 0;
+}
+
+#mis-citas-btn {
+  width: 100%;
+  padding: 13px 20px;
+  background: #f5f5f5;
+  color: var(--color-text);
+  border: 1.5px solid #e8e8e8;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#mis-citas-btn:hover { background: #eee; }
+
+/* ── Chat view ───────────────────────────────────────────────────── */
+#view-chat {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#view-chat.active {
+  display: flex;
 }
 
 /* Mensajes */
@@ -346,9 +542,7 @@ body {
   min-width: 0;
 }
 
-#chat-input:focus {
-  border-color: var(--color-secondary);
-}
+#chat-input:focus { border-color: var(--color-secondary); }
 
 #send-btn {
   width: 44px;
@@ -368,7 +562,126 @@ body {
   cursor: not-allowed;
 }
 
-/* Banner actualización */
+/* Resumen de cita */
+.booking-summary {
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 16px;
+  margin: 4px 0;
+  align-self: flex-start;
+  max-width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summary-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 0.86rem;
+  color: var(--color-text);
+}
+
+.summary-label {
+  font-weight: 600;
+  color: var(--color-text-light);
+  min-width: 64px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.summary-value {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.summary-price {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+
+/* Lista de citas */
+.citas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0 8px;
+  align-self: flex-start;
+  width: 100%;
+  max-width: 95%;
+}
+
+.cita-card {
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cita-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cita-servicio {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.cita-fecha {
+  font-size: 0.78rem;
+  color: var(--color-text-light);
+}
+
+.cancel-cita-btn {
+  padding: 6px 12px;
+  border: 1.5px solid #cc3333;
+  background: #fff;
+  color: #cc3333;
+  border-radius: 16px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cancel-cita-btn:active,
+.cancel-cita-btn:hover {
+  background: #cc3333;
+  color: #fff;
+}
+
+.citas-back-btn {
+  align-self: center;
+  margin-top: 4px;
+  padding: 8px 20px;
+  border: 1.5px solid var(--color-secondary);
+  background: #fff;
+  color: var(--color-secondary);
+  border-radius: 20px;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.citas-back-btn:hover {
+  background: var(--color-secondary);
+  color: #fff;
+}
+
+/* Banner actualizacion */
 #update-banner {
   display: none;
   align-items: center;
@@ -381,9 +694,7 @@ body {
   flex-shrink: 0;
 }
 
-#update-banner.visible {
-  display: flex;
-}
+#update-banner.visible { display: flex; }
 
 #update-btn {
   padding: 6px 14px;
@@ -412,50 +723,7 @@ body {
   text-decoration: none;
 }
 
-/* Lista de citas con botón cancelar */
-.citas-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px 14px 4px;
-  align-items: flex-start;
-  max-width: 95%;
-}
-
-.cita-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.cita-label {
-  flex: 1;
-  font-size: 0.85rem;
-  color: var(--color-text);
-}
-
-.cancel-cita-btn {
-  padding: 5px 12px;
-  border: 1.5px solid #cc3333;
-  background: #fff;
-  color: #cc3333;
-  border-radius: 16px;
-  font-size: 0.78rem;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.cancel-cita-btn:active,
-.cancel-cita-btn:hover {
-  background: #cc3333;
-  color: #fff;
-}
-
-/* Modal registro */
+/* ── Modals ──────────────────────────────────────────────────────── */
 .modal {
   display: none;
   position: fixed;
@@ -466,13 +734,9 @@ body {
   align-items: center;
 }
 
-#rgpd-modal {
-  z-index: 200;
-}
+#rgpd-modal { z-index: 200; }
 
-.modal.active {
-  display: flex;
-}
+.modal.active { display: flex; }
 
 .modal-box {
   background: #fff;
@@ -503,9 +767,7 @@ body {
   outline: none;
 }
 
-.modal-box input:focus {
-  border-color: var(--color-secondary);
-}
+.modal-box input:focus { border-color: var(--color-secondary); }
 
 .rgpd-label {
   display: flex;
@@ -526,10 +788,7 @@ body {
   cursor: pointer;
 }
 
-.rgpd-label a {
-  color: var(--color-secondary);
-  text-decoration: underline;
-}
+.rgpd-label a { color: var(--color-secondary); text-decoration: underline; }
 
 .rgpd-text {
   max-height: 260px;
@@ -565,3 +824,5 @@ body {
   font-weight: 600;
   margin-top: 4px;
 }
+
+/* ── Keyboard / viewport fix ─────────────────────────────────────── */

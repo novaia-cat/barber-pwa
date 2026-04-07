@@ -11,38 +11,103 @@ function getBarberId() {
 const barberId = getBarberId();
 let session = JSON.parse(localStorage.getItem('barber_session_' + barberId) || 'null');
 
-// DOM
-const chatMessages = document.getElementById('chat-messages');
-const chatInput    = document.getElementById('chat-input');
-const sendBtn      = document.getElementById('send-btn');
+// DOM refs
+const chatMessages  = document.getElementById('chat-messages');
+const chatInput     = document.getElementById('chat-input');
+const sendBtn       = document.getElementById('send-btn');
 const registerModal = document.getElementById('register-modal');
-const regNombre    = document.getElementById('reg-nombre');
-const regApellido  = document.getElementById('reg-apellido');
-const regTelefono  = document.getElementById('reg-telefono');
-const regRgpd      = document.getElementById('reg-rgpd');
-const regBtn       = document.getElementById('reg-btn');
-const rgpdModal    = document.getElementById('rgpd-modal');
-const rgpdLink     = document.getElementById('rgpd-link');
-const rgpdCloseBtn = document.getElementById('rgpd-close-btn');
-const barberName   = document.getElementById('barber-name');
-const headerStatus = document.getElementById('header-status');
-const logo         = document.getElementById('logo');
-const novaiaBadge  = document.getElementById('novaia-badge');
-const installBtn   = document.getElementById('install-btn');
-const menuBtn      = document.getElementById('menu-btn');
-const menuDropdown = document.getElementById('menu-dropdown');
-const menuUserName = document.getElementById('menu-user-name');
-const menuUserPhone= document.getElementById('menu-user-phone');
-const logoutBtn    = document.getElementById('logout-btn');
-const aboutBtn     = document.getElementById('about-btn');
-const aboutModal   = document.getElementById('about-modal');
-const aboutCloseBtn= document.getElementById('about-close-btn');
+const regNombre     = document.getElementById('reg-nombre');
+const regApellido   = document.getElementById('reg-apellido');
+const regTelefono   = document.getElementById('reg-telefono');
+const regRgpd       = document.getElementById('reg-rgpd');
+const regBtn        = document.getElementById('reg-btn');
+const rgpdModal     = document.getElementById('rgpd-modal');
+const rgpdLink      = document.getElementById('rgpd-link');
+const rgpdCloseBtn  = document.getElementById('rgpd-close-btn');
+const barberName    = document.getElementById('barber-name');
+const barberNameHdr = document.getElementById('barber-name-header');
+const headerStatus  = document.getElementById('header-status');
+const logo          = document.getElementById('logo');
+const novaiaBadge   = document.getElementById('novaia-badge');
+const installBtn    = document.getElementById('install-btn');
+const menuBtn       = document.getElementById('menu-btn');
+const menuDropdown  = document.getElementById('menu-dropdown');
+const menuUserName  = document.getElementById('menu-user-name');
+const menuUserPhone = document.getElementById('menu-user-phone');
+const logoutBtn     = document.getElementById('logout-btn');
+const aboutBtn      = document.getElementById('about-btn');
+const aboutModal    = document.getElementById('about-modal');
+const aboutCloseBtn = document.getElementById('about-close-btn');
+const viewLanding   = document.getElementById('view-landing');
+const viewChat      = document.getElementById('view-chat');
+const backBtn       = document.getElementById('back-btn');
+const headerTitle   = document.getElementById('header-title');
+const servicesList  = document.getElementById('services-list');
+const misCitasBtn   = document.getElementById('mis-citas-btn');
 
-// ── RGPD modal ────────────────────────────────────────────────────────
+// ── Vista switching ───────────────────────────────────────────────
+function showLandingView() {
+  viewLanding.style.display = 'flex';
+  viewChat.classList.remove('active');
+  backBtn.style.display = 'none';
+  headerTitle.style.display = 'none';
+  booking = null;
+}
+
+function showChatView(title) {
+  viewLanding.style.display = 'none';
+  viewChat.classList.add('active');
+  backBtn.style.display = 'flex';
+  headerTitle.style.display = 'block';
+  if (title) barberNameHdr.textContent = title;
+  clearChat();
+}
+
+function clearChat() {
+  chatMessages.innerHTML = '';
+}
+
+// ── Back button ───────────────────────────────────────────────────
+backBtn.addEventListener('click', handleBack);
+
+function handleBack() {
+  if (!booking) {
+    showLandingView();
+    return;
+  }
+  switch (booking.step) {
+    case 'date':
+    case 'date_picker':
+      showLandingView();
+      break;
+    case 'slots': {
+      booking.step = 'date';
+      clearChat();
+      addBubble('Para cuando quieres la cita?', 'bot');
+      renderQuickReplies(['Hoy', 'Manana', 'Pasado manana', 'Otro dia']);
+      break;
+    }
+    case 'confirm': {
+      booking.step = 'slots';
+      clearChat();
+      if (booking.cachedSlots && booking.cachedSlots.length) {
+        addBubble('Horas disponibles para ' + booking.fechaDisplay + ':', 'bot');
+        renderQuickReplies(booking.cachedSlots);
+      } else {
+        fetchAndShowSlots(booking.fecha);
+      }
+      break;
+    }
+    default:
+      showLandingView();
+  }
+}
+
+// ── RGPD modal ────────────────────────────────────────────────────
 rgpdLink.addEventListener('click', e => { e.preventDefault(); rgpdModal.classList.add('active'); });
 rgpdCloseBtn.addEventListener('click', () => { rgpdModal.classList.remove('active'); regRgpd.checked = true; });
 
-// ── PWA Install ───────────────────────────────────────────────────────
+// ── PWA Install ───────────────────────────────────────────────────
 let deferredInstallPrompt = null;
 
 window.addEventListener('beforeinstallprompt', e => {
@@ -64,7 +129,7 @@ window.addEventListener('appinstalled', () => {
   deferredInstallPrompt = null;
 });
 
-// ── Header menu ───────────────────────────────────────────────────────
+// ── Header menu ───────────────────────────────────────────────────
 menuBtn.addEventListener('click', e => {
   e.stopPropagation();
   menuDropdown.classList.toggle('open');
@@ -93,12 +158,11 @@ logoutBtn.addEventListener('click', () => {
 function updateHeaderUser() {
   if (!session) return;
   const fullName = (session.nombre + ' ' + (session.apellido || '')).trim();
-  headerStatus.textContent = 'Hola, ' + session.nombre;
   menuUserName.textContent = fullName;
   menuUserPhone.textContent = session.telefono;
 }
 
-// ── Keyboard / viewport fix ───────────────────────────────────────────
+// ── Keyboard / viewport fix ───────────────────────────────────────
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', () => {
     const vh = window.visualViewport.height;
@@ -107,8 +171,9 @@ if (window.visualViewport) {
   });
 }
 
-// ── Config desde n8n ─────────────────────────────────────────────────
+// ── Config desde n8n ─────────────────────────────────────────────
 let servicesCache = [];
+let barberNameText = 'Barberia';
 
 async function loadConfig() {
   try {
@@ -123,8 +188,17 @@ async function loadConfig() {
 }
 
 function applyConfig(cfg) {
-  if (cfg.nombre) barberName.textContent = cfg.nombre;
-  if (cfg.logo_url) { logo.alt = cfg.nombre || 'Logo'; logo.onload = () => { logo.style.display = 'block'; }; logo.onerror = () => { logo.style.display = 'none'; }; logo.src = cfg.logo_url; }
+  if (cfg.nombre) {
+    barberName.textContent = cfg.nombre;
+    barberNameHdr.textContent = cfg.nombre;
+    barberNameText = cfg.nombre;
+  }
+  if (cfg.logo_url) {
+    logo.alt = cfg.nombre || 'Logo';
+    logo.onload  = () => { logo.style.display = 'block'; };
+    logo.onerror = () => { logo.style.display = 'none'; };
+    logo.src = cfg.logo_url;
+  }
   if (cfg.color_primary) document.documentElement.style.setProperty('--color-primary', cfg.color_primary);
   if (cfg.color_secondary) {
     document.documentElement.style.setProperty('--color-secondary', cfg.color_secondary);
@@ -135,7 +209,80 @@ function applyConfig(cfg) {
   if (themeColor && cfg.color_primary) themeColor.content = cfg.color_primary;
 }
 
-// ── Quick replies ─────────────────────────────────────────────────────
+// ── Service cards (landing) ───────────────────────────────────────
+const SERVICE_ICONS = {
+  default: '✂️',
+  corte: '✂️',
+  barba: '🪒',
+  tinte: '🎨',
+  color: '🎨',
+};
+
+function getServiceIcon(nombre) {
+  const n = nombre.toLowerCase();
+  if (n.includes('barba')) return SERVICE_ICONS.barba;
+  if (n.includes('tinte') || n.includes('color')) return SERVICE_ICONS.color;
+  return SERVICE_ICONS.corte;
+}
+
+function renderServiceCards() {
+  servicesList.innerHTML = '';
+  const services = servicesCache.length
+    ? servicesCache
+    : [
+        { id: 'SRV001', nombre: 'Corte',        duracion_min: 30, precio: 15 },
+        { id: 'SRV002', nombre: 'Barba',         duracion_min: 20, precio: 10 },
+        { id: 'SRV003', nombre: 'Corte + Barba', duracion_min: 45, precio: 22 },
+        { id: 'SRV004', nombre: 'Tinte',         duracion_min: 90, precio: 45 },
+      ];
+
+  services.forEach(svc => {
+    const card = document.createElement('div');
+    card.className = 'service-card';
+
+    const icon = document.createElement('div');
+    icon.className = 'service-icon';
+    icon.textContent = getServiceIcon(svc.nombre);
+
+    const info = document.createElement('div');
+    info.className = 'service-info';
+
+    const name = document.createElement('div');
+    name.className = 'service-name';
+    name.textContent = svc.nombre;
+
+    const meta = document.createElement('div');
+    meta.className = 'service-meta';
+    meta.textContent = svc.duracion_min + ' min';
+
+    info.appendChild(name);
+    info.appendChild(meta);
+
+    const price = document.createElement('div');
+    price.className = 'service-price';
+    price.textContent = svc.precio + '€';
+
+    const btn = document.createElement('button');
+    btn.className = 'service-book-btn';
+    btn.textContent = 'Reservar';
+    btn.addEventListener('click', () => startBookingWithService(svc));
+
+    card.appendChild(icon);
+    card.appendChild(info);
+    card.appendChild(price);
+    card.appendChild(btn);
+    servicesList.appendChild(card);
+  });
+}
+
+// ── Mis citas (desde landing) ─────────────────────────────────────
+misCitasBtn.addEventListener('click', async () => {
+  showChatView(barberNameText);
+  enableChat();
+  await fetchMyCitas();
+});
+
+// ── Quick replies ─────────────────────────────────────────────────
 function parseQuickReplies(text) {
   const match = text.match(/\[QUICK_REPLIES:\s*([^\]]+)\]/i);
   if (!match) return { text: text.trim(), replies: [] };
@@ -145,7 +292,7 @@ function parseQuickReplies(text) {
 }
 
 function removeActiveQuickReplies() {
-  document.querySelectorAll('.quick-replies, .citas-list').forEach(el => el.remove());
+  document.querySelectorAll('.quick-replies, .citas-list, .booking-summary').forEach(el => el.remove());
 }
 
 function renderQuickReplies(replies) {
@@ -166,7 +313,7 @@ function renderQuickReplies(replies) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// ── Markdown básico ───────────────────────────────────────────────────
+// ── Markdown básico ───────────────────────────────────────────────
 function markdownToHtml(text) {
   return text
     .replace(/&/g, '&amp;')
@@ -176,7 +323,7 @@ function markdownToHtml(text) {
     .replace(/\n/g, '<br>');
 }
 
-// ── Burbujas ──────────────────────────────────────────────────────────
+// ── Burbujas ──────────────────────────────────────────────────────
 function addBubble(text, type) {
   const div = document.createElement('div');
   div.className = 'bubble ' + type;
@@ -194,7 +341,7 @@ function showTyping() {
   return addBubble('Escribiendo...', 'typing');
 }
 
-// ── Fechas (zona Europe/Madrid) ───────────────────────────────────────
+// ── Fechas (zona Europe/Madrid) ───────────────────────────────────
 function getDateISO(offsetDays) {
   const fmt = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid' });
   const today = fmt.format(new Date());
@@ -212,48 +359,23 @@ function formatDateDisplay(iso) {
   return dias[date.getDay()] + ' ' + d + ' de ' + meses[m - 1];
 }
 
-// ── Booking state machine ─────────────────────────────────────────────
-// booking = null (idle) | { step, service, fecha, fechaDisplay, hora }
-// steps: 'service' | 'date' | 'date_picker' | 'slots' | 'confirm'
+// ── Booking state machine ─────────────────────────────────────────
+// booking = null | { step, service, fecha, fechaDisplay, hora, cachedSlots, datePicker }
+// steps: 'date' | 'date_picker' | 'slots' | 'confirm'
 let booking = null;
 
-const INITIAL_REPLIES = ['Reservar cita', 'Cancelar cita', 'Ver mis citas'];
-
-function serviceLabel(svc) {
-  return svc.nombre + ' (' + svc.duracion_min + 'min - ' + svc.precio + 'EUR)';
-}
-
-function startBooking() {
-  booking = { step: 'service' };
-  const services = servicesCache.length
-    ? servicesCache.map(serviceLabel)
-    : ['Corte (30min - 15EUR)', 'Barba (20min - 10EUR)', 'Corte+Barba (45min - 22EUR)', 'Tinte (90min - 45EUR)'];
-  addBubble('Que servicio quieres?', 'bot');
-  renderQuickReplies(services);
-}
-
-function cancelBooking(msg) {
-  booking = null;
-  addBubble(msg || 'De acuerdo, empezamos de nuevo.', 'bot');
-  renderQuickReplies(INITIAL_REPLIES);
+function startBookingWithService(svc) {
+  showChatView(barberNameText);
+  enableChat();
+  booking = { step: 'date', service: svc };
+  addBubble('Has elegido **' + svc.nombre + '**. Para cuando quieres la cita?', 'bot');
+  renderQuickReplies(['Hoy', 'Manana', 'Pasado manana', 'Otro dia']);
 }
 
 async function handleBookingStep(text) {
   if (!booking) return false;
 
-  // ── PASO 1: elegir servicio ──────────────────────────────────────────
-  if (booking.step === 'service') {
-    const svc = servicesCache.find(s => text.toLowerCase().includes(s.nombre.toLowerCase()))
-      || servicesCache.find(s => serviceLabel(s) === text);
-    if (!svc) return false; // texto libre no reconocido → AI Agent
-    booking.service = svc;
-    booking.step = 'date';
-    addBubble('Para cuando?', 'bot');
-    renderQuickReplies(['Hoy', 'Manana', 'Pasado manana', 'Otro dia']);
-    return true;
-  }
-
-  // ── PASO 2: elegir fecha ─────────────────────────────────────────────
+  // ── PASO 1: elegir fecha ─────────────────────────────────────────
   if (booking.step === 'date') {
     const dateMap = { 'Hoy': 0, 'Manana': 1, 'Pasado manana': 2 };
     if (text in dateMap) {
@@ -266,24 +388,22 @@ async function handleBookingStep(text) {
     }
     if (text === 'Otro dia') {
       booking.step = 'date_picker';
-      // Generar los próximos 7 días (excluyendo hoy/mañana/pasado)
       const options = [];
       for (let i = 3; i <= 9; i++) {
         const iso = getDateISO(i);
         const date = new Date(iso + 'T12:00:00');
-        if (date.getDay() === 0) continue; // sin domingos
+        if (date.getDay() === 0) continue;
         options.push({ iso, label: formatDateDisplay(iso) });
       }
       addBubble('Que dia te viene bien?', 'bot');
       renderQuickReplies(options.map(o => o.label));
-      // Guardar el mapa para poder resolver el label al ISO
       booking.datePicker = options;
       return true;
     }
     return false;
   }
 
-  // ── PASO 2b: selector de dias ────────────────────────────────────────
+  // ── PASO 1b: selector de dias ────────────────────────────────────
   if (booking.step === 'date_picker') {
     const option = (booking.datePicker || []).find(o => o.label === text);
     if (!option) return false;
@@ -294,31 +414,61 @@ async function handleBookingStep(text) {
     return true;
   }
 
-  // ── PASO 3: elegir hora ──────────────────────────────────────────────
+  // ── PASO 2: elegir hora ──────────────────────────────────────────
   if (booking.step === 'slots') {
     if (!/^\d{2}:\d{2}$/.test(text)) return false;
     booking.hora = text;
     booking.step = 'confirm';
-    const msg = 'Confirmo: **' + booking.service.nombre + '** el ' + booking.fechaDisplay + ' a las **' + text + '**. Es correcto?';
-    addBubble(msg, 'bot');
-    renderQuickReplies(['Si, confirmar', 'No, cambiar algo']);
+    showBookingSummary();
     return true;
   }
 
-  // ── PASO 4: confirmar ────────────────────────────────────────────────
+  // ── PASO 3: confirmar ────────────────────────────────────────────
   if (booking.step === 'confirm') {
-    if (text === 'Si, confirmar') {
+    if (text === 'Confirmar') {
       await executeBooking();
       return true;
     }
-    if (text === 'No, cambiar algo') {
-      cancelBooking('Sin problema, empezamos de nuevo.');
+    if (text === 'Cambiar algo') {
+      handleBack();
       return true;
     }
     return false;
   }
 
   return false;
+}
+
+function showBookingSummary() {
+  const svc = booking.service;
+
+  const summary = document.createElement('div');
+  summary.className = 'booking-summary';
+
+  function row(label, value, cls) {
+    const r = document.createElement('div');
+    r.className = 'summary-row';
+    const l = document.createElement('span');
+    l.className = 'summary-label';
+    l.textContent = label;
+    const v = document.createElement('span');
+    v.className = cls || 'summary-value';
+    v.textContent = value;
+    r.appendChild(l);
+    r.appendChild(v);
+    return r;
+  }
+
+  summary.appendChild(row('Servicio', svc.nombre));
+  summary.appendChild(row('Fecha', booking.fechaDisplay));
+  summary.appendChild(row('Hora', booking.hora));
+  summary.appendChild(row('Duracion', svc.duracion_min + ' min'));
+  summary.appendChild(row('Precio', svc.precio + '€', 'summary-price'));
+
+  chatMessages.appendChild(summary);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  renderQuickReplies(['Confirmar', 'Cambiar algo']);
 }
 
 async function fetchAndShowSlots(fecha) {
@@ -330,12 +480,12 @@ async function fetchAndShowSlots(fecha) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        barber_id:  barberId,
-        telefono:   session.telefono,
-        nombre:     session.nombre,
-        apellido:   session.apellido,
-        action:     'get_slots',
-        mensaje:    ''
+        barber_id: barberId,
+        telefono:  session.telefono,
+        nombre:    session.nombre,
+        apellido:  session.apellido,
+        action:    'get_slots',
+        mensaje:   ''
       })
     });
     const data = await res.json();
@@ -345,12 +495,14 @@ async function fetchAndShowSlots(fecha) {
       .filter(s => s.fecha === fecha)
       .map(s => s.hora);
 
+    booking.cachedSlots = slotsDelDia;
+
     if (!slotsDelDia.length) {
       addBubble('No hay horas disponibles ese dia. Elige otro.', 'bot');
       booking.step = 'date';
       renderQuickReplies(['Hoy', 'Manana', 'Pasado manana', 'Otro dia']);
     } else {
-      addBubble('Horas disponibles:', 'bot');
+      addBubble('Horas disponibles para ' + booking.fechaDisplay + ':', 'bot');
       renderQuickReplies(slotsDelDia);
     }
   } catch {
@@ -368,7 +520,7 @@ async function executeBooking() {
   const typing = showTyping();
   chatInput.disabled = true;
   sendBtn.disabled = true;
-  const svc  = booking.service;
+  const svc = booking.service;
   const fecha_hora = booking.fecha + 'T' + booking.hora + ':00';
   try {
     const res = await fetch(WEBHOOK_CHAT, {
@@ -387,20 +539,22 @@ async function executeBooking() {
     });
     const data = await res.json();
     typing.remove();
-    booking = null;
+
     addBubble(data.respuesta || 'Cita reservada! Hasta pronto.', 'bot');
-    renderQuickReplies(INITIAL_REPLIES);
+
+    // Breve pausa y vuelve a la landing
+    setTimeout(() => showLandingView(), 2800);
   } catch {
     typing.remove();
     addBubble('Error al reservar. Intentalo de nuevo.', 'bot');
-    renderQuickReplies(['Si, confirmar', 'No, cambiar algo']);
+    renderQuickReplies(['Confirmar', 'Cambiar algo']);
   } finally {
     chatInput.disabled = false;
     sendBtn.disabled = false;
   }
 }
 
-// ── Ver mis citas ─────────────────────────────────────────────────────
+// ── Ver mis citas ─────────────────────────────────────────────────
 async function fetchMyCitas() {
   const typing = showTyping();
   chatInput.disabled = true;
@@ -420,58 +574,96 @@ async function fetchMyCitas() {
     });
     const data = await res.json();
     typing.remove();
-    addBubble(data.respuesta || 'No se pudieron cargar tus citas.', 'bot');
+
     if (data.citas && data.citas.length) {
+      addBubble('Tus proximas citas:', 'bot');
       renderCitasWithCancel(data.citas);
     } else {
-      renderQuickReplies(INITIAL_REPLIES);
+      addBubble('No tienes citas proximas.', 'bot');
+      renderCitasBackBtn();
     }
   } catch {
     typing.remove();
     addBubble('Error de conexion. Intentalo de nuevo.', 'bot');
-    renderQuickReplies(INITIAL_REPLIES);
+    renderCitasBackBtn();
   } finally {
     chatInput.disabled = false;
     sendBtn.disabled = false;
   }
 }
 
+function parseCitaDisplay(display) {
+  // display format: "Corte — lun 7 de abril a las 10:00"
+  const parts = display.split(' — ');
+  return { servicio: parts[0] || display, fecha: parts[1] || '' };
+}
+
 function renderCitasWithCancel(citas) {
   const container = document.createElement('div');
   container.className = 'citas-list';
+
   citas.forEach(cita => {
-    const row = document.createElement('div');
-    row.className = 'cita-row';
-    const label = document.createElement('span');
-    label.className = 'cita-label';
-    label.textContent = cita.display;
+    const { servicio, fecha } = parseCitaDisplay(cita.display);
+
+    const card = document.createElement('div');
+    card.className = 'cita-card';
+
+    const info = document.createElement('div');
+    info.className = 'cita-info';
+
+    const svcEl = document.createElement('div');
+    svcEl.className = 'cita-servicio';
+    svcEl.textContent = servicio;
+
+    const fechaEl = document.createElement('div');
+    fechaEl.className = 'cita-fecha';
+    fechaEl.textContent = fecha || cita.display;
+
+    info.appendChild(svcEl);
+    info.appendChild(fechaEl);
+
     const btn = document.createElement('button');
     btn.className = 'cancel-cita-btn';
     btn.textContent = 'Cancelar';
     btn.addEventListener('click', () => {
-      removeActiveQuickReplies();
+      container.remove();
       cancelCita(cita.id, cita.display);
     });
-    row.appendChild(label);
-    row.appendChild(btn);
-    container.appendChild(row);
+
+    card.appendChild(info);
+    card.appendChild(btn);
+    container.appendChild(card);
   });
+
   const backBtn = document.createElement('button');
-  backBtn.className = 'qr-btn';
-  backBtn.textContent = 'Volver';
+  backBtn.className = 'citas-back-btn';
+  backBtn.textContent = 'Ver opciones';
   backBtn.addEventListener('click', () => {
-    removeActiveQuickReplies();
-    renderQuickReplies(INITIAL_REPLIES);
+    container.remove();
+    showLandingView();
   });
   container.appendChild(backBtn);
+
   chatMessages.appendChild(container);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function renderCitasBackBtn() {
+  const btn = document.createElement('button');
+  btn.className = 'citas-back-btn';
+  btn.textContent = 'Ver opciones';
+  btn.addEventListener('click', () => {
+    btn.remove();
+    showLandingView();
+  });
+  chatMessages.appendChild(btn);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 async function cancelCita(citaId, display) {
   if (!confirm('Cancelar ' + display + '?')) {
     addBubble('De acuerdo, no se cancela nada.', 'bot');
-    renderQuickReplies(INITIAL_REPLIES);
+    renderCitasBackBtn();
     return;
   }
   addBubble('Cancelando tu cita...', 'bot');
@@ -493,41 +685,26 @@ async function cancelCita(citaId, display) {
     });
     const data = await res.json();
     addBubble(data.respuesta || 'Cita cancelada.', 'bot');
-    renderQuickReplies(INITIAL_REPLIES);
+    renderCitasBackBtn();
   } catch {
     addBubble('Error al cancelar. Intentalo de nuevo.', 'bot');
-    renderQuickReplies(INITIAL_REPLIES);
+    renderCitasBackBtn();
   } finally {
     chatInput.disabled = false;
     sendBtn.disabled = false;
   }
 }
 
-// ── Enviar mensaje ────────────────────────────────────────────────────
+// ── Enviar mensaje (texto libre → AI Agent) ───────────────────────
 async function sendMessage(text) {
   removeActiveQuickReplies();
   addBubble(text, 'user');
   chatInput.value = '';
 
-  // Opciones del menú principal — gestionadas por la PWA
-  if (text === 'Reservar cita') {
-    startBooking();
-    return;
-  }
-  if (text === 'Cancelar cita') {
-    await fetchMyCitas();
-    return;
-  }
-  if (text === 'Ver mis citas') {
-    await fetchMyCitas();
-    return;
-  }
-
-  // Flujo de reserva guiado — gestionado por la PWA
+  // Flujo de reserva guiado
   if (booking) {
     const handled = await handleBookingStep(text);
     if (handled) return;
-    // Texto no reconocido en el flujo → salir y dejar al AI Agent
     booking = null;
   }
 
@@ -552,7 +729,7 @@ async function sendMessage(text) {
     const data = await res.json();
     typing.remove();
 
-    const rawText = data.respuesta || data.output || 'No entendi eso. Prueba con "reservar" o "ayuda".';
+    const rawText = data.respuesta || data.output || 'No entendi eso.';
     const { text: cleanText, replies } = parseQuickReplies(rawText);
     addBubble(cleanText, 'bot');
     renderQuickReplies(replies);
@@ -566,7 +743,7 @@ async function sendMessage(text) {
   }
 }
 
-// ── Registro ──────────────────────────────────────────────────────────
+// ── Registro ──────────────────────────────────────────────────────
 function showRegisterModal() {
   registerModal.classList.add('active');
   regNombre.focus();
@@ -581,10 +758,10 @@ regBtn.addEventListener('click', async () => {
   const apellido = regApellido.value.trim();
   const telefono = regTelefono.value.trim().replace(/\s/g, '');
 
-  if (!nombre   || nombre.length < 2)          { regNombre.focus();   return; }
-  if (!apellido || apellido.length < 2)         { regApellido.focus(); return; }
-  if (!telefono.match(/^\d{9,15}$/))            { regTelefono.focus(); return; }
-  if (!regRgpd.checked)                         { rgpdLink.click();    return; }
+  if (!nombre   || nombre.length < 2)    { regNombre.focus();   return; }
+  if (!apellido || apellido.length < 2)  { regApellido.focus(); return; }
+  if (!telefono.match(/^\d{9,15}$/))     { regTelefono.focus(); return; }
+  if (!regRgpd.checked)                  { rgpdLink.click();    return; }
 
   regBtn.disabled = true;
   regBtn.textContent = 'Registrando...';
@@ -601,15 +778,10 @@ regBtn.addEventListener('click', async () => {
     localStorage.setItem('barber_session_' + barberId, JSON.stringify(session));
 
     hideRegisterModal();
-    enableChat();
     updateHeaderUser();
-
-    addBubble('Hola ' + nombre + ', en que puedo ayudarte?', 'bot');
-    renderQuickReplies(INITIAL_REPLIES);
-
-    subscribePush();
+    renderServiceCards();
   } catch {
-    addBubble('Error al registrar. Intentalo de nuevo.', 'bot');
+    // silently fail, user can retry
   } finally {
     regBtn.disabled = false;
     regBtn.textContent = 'Empezar';
@@ -620,11 +792,10 @@ regBtn.addEventListener('click', async () => {
   el.addEventListener('keydown', e => { if (e.key === 'Enter') regBtn.click(); });
 });
 
-// ── Chat activo ───────────────────────────────────────────────────────
+// ── Chat activo ───────────────────────────────────────────────────
 function enableChat() {
   chatInput.disabled = false;
   sendBtn.disabled = false;
-  chatInput.focus();
 }
 
 sendBtn.addEventListener('click', () => {
@@ -639,7 +810,7 @@ chatInput.addEventListener('keydown', e => {
   }
 });
 
-// ── Web Push ──────────────────────────────────────────────────────────
+// ── Web Push ──────────────────────────────────────────────────────
 async function subscribePush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
   try {
@@ -657,11 +828,11 @@ async function subscribePush() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        barber_id:   barberId,
-        telefono:    session.telefono,
-        nombre:      session.nombre,
-        push_token:  JSON.stringify(sub),
-        mensaje:     '__push_subscribe__'
+        barber_id:  barberId,
+        telefono:   session.telefono,
+        nombre:     session.nombre,
+        push_token: JSON.stringify(sub),
+        mensaje:    '__push_subscribe__'
       })
     });
   } catch (e) {
@@ -676,7 +847,7 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
 }
 
-// ── Service Worker + auto-update ──────────────────────────────────────
+// ── Service Worker + auto-update ──────────────────────────────────
 if ('serviceWorker' in navigator) {
   const updateBanner = document.getElementById('update-banner');
   const updateBtn    = document.getElementById('update-btn');
@@ -703,15 +874,14 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// ── Init ──────────────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────
 (async function init() {
   await loadConfig();
 
   if (session) {
-    enableChat();
     updateHeaderUser();
-    addBubble('Hola ' + session.nombre + ', en que puedo ayudarte?', 'bot');
-    renderQuickReplies(INITIAL_REPLIES);
+    renderServiceCards();
+    showLandingView();
   } else {
     showRegisterModal();
   }
