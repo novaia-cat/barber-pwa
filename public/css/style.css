@@ -1204,8 +1204,9 @@ body {
 .slot-btn:hover { background: #e8e8e8; }
 
 .slot-btn.selected {
-  background: var(--color-primary);
+  background: var(--color-secondary);
   color: #fff;
+  font-weight: 600;
 }
 
 .slot-btn:active { transform: scale(0.96); }
@@ -1220,7 +1221,7 @@ body {
 #select-slot-btn {
   width: 100%;
   padding: 15px;
-  background: var(--color-primary);
+  background: var(--color-secondary);
   color: #fff;
   border: none;
   border-radius: 50px;

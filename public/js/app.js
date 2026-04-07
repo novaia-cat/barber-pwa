@@ -247,6 +247,14 @@ async function loadConfig() {
   }
 }
 
+function hexLuminance(hex) {
+  const c = hex.replace('#', '');
+  const r = parseInt(c.slice(0,2), 16);
+  const g = parseInt(c.slice(2,4), 16);
+  const b = parseInt(c.slice(4,6), 16);
+  return (0.299*r + 0.587*g + 0.114*b) / 255;
+}
+
 function applyConfig(cfg) {
   if (cfg.nombre) {
     barberName.textContent = cfg.nombre;
@@ -260,14 +268,16 @@ function applyConfig(cfg) {
     logo.onerror = () => { logo.style.display = 'none'; };
     logo.src = cfg.logo_url;
   }
-  if (cfg.color_primary) document.documentElement.style.setProperty('--color-primary', cfg.color_primary);
-  if (cfg.color_secondary) {
+  if (cfg.color_primary && /^#[0-9a-fA-F]{6}$/.test(cfg.color_primary) && hexLuminance(cfg.color_primary) < 0.55) {
+    document.documentElement.style.setProperty('--color-primary', cfg.color_primary);
+    const themeColor = document.querySelector('meta[name=theme-color]');
+    if (themeColor) themeColor.content = cfg.color_primary;
+  }
+  if (cfg.color_secondary && /^#[0-9a-fA-F]{6}$/.test(cfg.color_secondary)) {
     document.documentElement.style.setProperty('--color-secondary', cfg.color_secondary);
     document.documentElement.style.setProperty('--color-bubble-user', cfg.color_secondary);
   }
   if (cfg.novaia_badge) novaiaBadge.style.display = 'block';
-  const themeColor = document.querySelector('meta[name=theme-color]');
-  if (themeColor && cfg.color_primary) themeColor.content = cfg.color_primary;
 }
 
 // ── Service cards (landing) ───────────────────────────────────────
