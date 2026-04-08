@@ -1,13 +1,34 @@
-/* CSS variables — sobreescritas por JS con config de n8n */
+/* ── Design system: Artisan Cut ─────────────────────────────────── */
+/* Variables base — algunas sobreescritas por JS con config de n8n  */
 :root {
-  --color-primary: #1a1a2e;
-  --color-secondary: #e94560;
-  --color-bg: #f5f5f5;
-  --color-bubble-user: #e94560;
-  --color-bubble-bot: #ffffff;
-  --color-text: #333333;
-  --color-text-light: #888888;
-  --font: 'Segoe UI', system-ui, sans-serif;
+  /* Palette Artisan Cut */
+  --color-bg:               #fbf9f8;
+  --color-surface:          #fbf9f8;
+  --color-surface-low:      #f3efec;
+  --color-surface-high:     #ede7e2;
+  --color-primary:          #5f5e5e;
+  --color-secondary:        #725b3f;
+  --color-on-surface:       #303332;
+  --color-on-surface-var:   #797b7a;
+  --color-outline:          #c4bdb8;
+  --color-error:            #9f403d;
+  --color-shimmer-1:        #d4b996;
+  --color-shimmer-2:        #705b3e;
+
+  /* Legacy aliases — mantienen compatibilidad con vistas antiguas */
+  --color-bubble-user:      #725b3f;
+  --color-bubble-bot:       #ffffff;
+  --color-text:             #303332;
+  --color-text-light:       #797b7a;
+
+  /* Typography */
+  --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* Spacing / radius */
+  --radius-sm:  0.25rem;
+  --radius-md:  0.5rem;
+  --radius-lg:  0.75rem;
+  --radius-full: 9999px;
 }
 
 * {
@@ -1204,9 +1225,8 @@ body {
 .slot-btn:hover { background: #e8e8e8; }
 
 .slot-btn.selected {
-  background: var(--color-secondary);
+  background: var(--color-primary);
   color: #fff;
-  font-weight: 600;
 }
 
 .slot-btn:active { transform: scale(0.96); }
@@ -1221,7 +1241,7 @@ body {
 #select-slot-btn {
   width: 100%;
   padding: 15px;
-  background: var(--color-secondary);
+  background: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: 50px;
@@ -1350,6 +1370,107 @@ body {
   font-size: 0.88rem;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Pantalla de carga ───────────────────────────────────────────── */
+#view-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+  min-height: max(884px, 100dvh);
+  transition: opacity 0.3s ease;
+}
+
+#view-loading.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#loading-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 260px;
+  text-align: center;
+}
+
+#loading-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-low);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+#loading-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+#loading-subtitle {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--color-on-surface-var);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: -4px;
+}
+
+#loading-bar-wrap {
+  width: 100%;
+  height: 3px;
+  background: var(--color-outline);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-top: 20px;
+  opacity: 0.5;
+}
+
+#loading-bar {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    90deg,
+    var(--color-shimmer-1) 0%,
+    var(--color-shimmer-2) 50%,
+    var(--color-shimmer-1) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+#loading-label {
+  font-size: 0.78rem;
+  color: var(--color-on-surface-var);
+  margin-top: 10px;
+}
+
+#loading-footer {
+  position: absolute;
+  bottom: 36px;
+  font-size: 0.7rem;
+  color: var(--color-on-surface-var);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 /* ── Keyboard / viewport fix ─────────────────────────────────────── */

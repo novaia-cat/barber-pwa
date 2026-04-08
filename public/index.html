@@ -3,14 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="theme-color" content="#fbf9f8" />
   <title>Barber Chat</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="css/style.css?v=10.3" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="css/style.css?v=11.0" />
 </head>
 <body>
 
   <div id="app">
+
+    <!-- ── Pantalla de carga ──────────────────────────────────────── -->
+    <div id="view-loading">
+      <div id="loading-inner">
+        <div id="loading-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#725b3f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+            <line x1="20" y1="4" x2="8.12" y2="15.88"/>
+            <line x1="14.47" y1="14.48" x2="20" y2="20"/>
+            <line x1="8.12" y1="8.12" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <h1 id="loading-title">La Barbería</h1>
+        <p id="loading-subtitle">Artisan Grooming Atelier</p>
+        <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+        <p id="loading-label">Cargando...</p>
+      </div>
+      <div id="loading-footer">Est. 2024 &bull; Excellence in Craft</div>
+    </div>
 
     <!-- Header -->
     <header id="chat-header">
@@ -42,7 +64,7 @@
     <div id="about-modal" class="modal">
       <div class="modal-box about-box">
         <div class="about-app-name">Barber Bot</div>
-        <div class="about-version">v10.3</div>
+        <div class="about-version">v11.0</div>
         <img class="about-logo" src="https://novaia.cat/wp-content/uploads/2026/02/novaia_logo.png" alt="Novaia" />
         <p class="about-tagline">Created &amp; designed by</p>
         <a class="about-link" href="https://novaia.cat" target="_blank" rel="noopener">novaia.cat</a>
@@ -222,6 +244,6 @@
 
   </div>
 
-  <script src="js/app.js?v=10.3"></script>
+  <script src="js/app.js?v=11.0"></script>
 </body>
 </html>
