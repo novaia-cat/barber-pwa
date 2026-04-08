@@ -29,6 +29,9 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
+  // Dev local: nunca cachear (evita stale assets en Live Server)
+  if (url.hostname === '127.0.0.1' || url.hostname === 'localhost') return;
+
   // API n8n: siempre red
   if (url.hostname.includes('n8n.novaia.cat')) return;
 
