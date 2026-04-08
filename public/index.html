@@ -9,7 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="css/style.css?v=11.0" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <link rel="stylesheet" href="css/style.css?v=11.15" />
 </head>
 <body>
 
@@ -43,28 +44,17 @@
         <span id="barber-name-header"></span>
       </div>
       <div id="header-actions">
-        <button id="install-btn" title="Instalar app" aria-label="Instalar app" style="display:none">
+        <button id="install-btn-old" title="Instalar app" aria-label="Instalar app" style="display:none">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
-        <button id="menu-btn" title="Menu" aria-label="Menu">&#8942;</button>
       </div>
     </header>
-
-    <!-- Dropdown menu -->
-    <div id="menu-dropdown">
-      <div id="menu-user-info">
-        <span id="menu-user-name">-</span>
-        <span id="menu-user-phone">-</span>
-      </div>
-      <button id="about-btn">Acerca de</button>
-      <button id="logout-btn">Cerrar sesion</button>
-    </div>
 
     <!-- Modal about -->
     <div id="about-modal" class="modal">
       <div class="modal-box about-box">
         <div class="about-app-name">Barber Bot</div>
-        <div class="about-version">v11.0</div>
+        <div class="about-version">v11.15</div>
         <img class="about-logo" src="https://novaia.cat/wp-content/uploads/2026/02/novaia_logo.png" alt="Novaia" />
         <p class="about-tagline">Created &amp; designed by</p>
         <a class="about-link" href="https://novaia.cat" target="_blank" rel="noopener">novaia.cat</a>
@@ -90,66 +80,113 @@
       </div>
     </div>
 
-    <!-- Modal registro -->
-    <div id="register-modal" class="modal">
-      <div class="modal-box">
-        <h2>Bienvenido</h2>
-        <p>Introduce tu nombre y telefono para continuar</p>
-        <input id="reg-nombre" type="text" placeholder="Nombre" maxlength="50" />
-        <input id="reg-apellido" type="text" placeholder="Apellido" maxlength="50" />
-        <input id="reg-telefono" type="tel" placeholder="Telefono (ej: 612345678)" maxlength="15" />
-        <label class="rgpd-label">
-          <input id="reg-rgpd" type="checkbox" />
-          He leido y acepto la <a href="#" id="rgpd-link">politica de privacidad</a>
-        </label>
-        <button id="reg-btn">Empezar</button>
+    <!-- ── Vista Login ───────────────────────────────────────────── -->
+    <div id="view-login">
+      <header class="auth-header">
+        <span class="auth-brand">LA BARBERÍA</span>
+        <button id="login-menu-btn" class="auth-menu-btn" aria-label="Menu">&#8942;</button>
+      </header>
+      <div class="auth-body">
+        <div class="auth-welcome">
+          <p class="auth-label">BIENVENIDO</p>
+          <h1 class="auth-title">Inicia sesión</h1>
+          <p class="auth-sub">Bienvenido de nuevo a la experiencia de barbería tradicional.</p>
+        </div>
+        <div class="auth-form">
+          <div class="auth-field">
+            <label class="auth-field-label">CORREO ELECTRÓNICO</label>
+            <input id="login-email" type="email" class="auth-input" placeholder="tu@email.com" autocomplete="email" />
+          </div>
+          <div class="auth-field">
+            <label class="auth-field-label">CONTRASEÑA</label>
+            <input id="login-password" type="password" class="auth-input" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+          <button class="auth-link-btn" id="forgot-password-btn">¿Olvidaste tu contraseña?</button>
+          <button id="login-btn" class="auth-cta-btn">Entrar</button>
+          <p class="auth-switch">¿No tienes cuenta? <a href="#" id="go-register-btn">Regístrate</a></p>
+        </div>
       </div>
     </div>
 
-    <!-- Landing view -->
-    <div id="view-landing">
-
-      <div id="hero">
-        <div id="hero-pattern"></div>
-        <div id="logo-placeholder">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
-            <line x1="20" y1="4" x2="8.12" y2="15.88"/>
-            <line x1="14.47" y1="14.48" x2="20" y2="20"/>
-            <line x1="8.12" y1="8.12" x2="12" y2="12"/>
-          </svg>
+    <!-- ── Vista Registro ─────────────────────────────────────────── -->
+    <div id="view-register">
+      <header class="auth-header">
+        <span class="auth-brand">LA BARBERÍA</span>
+        <button id="register-menu-btn" class="auth-menu-btn" aria-label="Menu">&#8942;</button>
+      </header>
+      <div class="auth-body">
+        <div class="auth-welcome">
+          <p class="auth-label">BIENVENIDO</p>
+          <h1 class="auth-title">Crea tu cuenta</h1>
+          <p class="auth-sub">Únete a la experiencia de barbería tradicional.</p>
         </div>
-        <img id="logo" alt="" />
-        <div id="hero-info">
-          <h1 id="barber-name">Cargando...</h1>
-          <span id="header-status"></span>
+        <div class="auth-form">
+          <div class="auth-fields-row">
+            <div class="auth-field">
+              <label class="auth-field-label">NOMBRE</label>
+              <input id="reg-nombre" type="text" class="auth-input" placeholder="Juan" maxlength="50" autocomplete="given-name" />
+            </div>
+            <div class="auth-field">
+              <label class="auth-field-label">APELLIDO</label>
+              <input id="reg-apellido" type="text" class="auth-input" placeholder="García" maxlength="50" autocomplete="family-name" />
+            </div>
+          </div>
+          <div class="auth-field">
+            <label class="auth-field-label">TELÉFONO</label>
+            <input id="reg-telefono" type="tel" class="auth-input" placeholder="612 345 678" maxlength="15" autocomplete="tel" />
+          </div>
+          <label class="auth-rgpd">
+            <input id="reg-rgpd" type="checkbox" />
+            <span>He leído y acepto la <a href="#" id="rgpd-link">política de privacidad</a></span>
+          </label>
+          <button id="reg-btn" class="auth-cta-btn">Continuar</button>
+          <p class="auth-switch">¿Ya tienes cuenta? <a href="#" id="go-login-btn">Inicia sesión</a></p>
         </div>
       </div>
+    </div>
+
+    <!-- register-modal eliminado — reemplazado por #view-register -->
+
+    <!-- ── Landing / Servicios ───────────────────────────────────── -->
+    <!-- ── Header compartido ─────────────────────────────────────── -->
+    <header id="app-header" style="display:none">
+      <button id="menu-btn" aria-label="Menu">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <h1 id="barber-name">La Barbería</h1>
+      <button id="install-btn" title="Instalar app" aria-label="Instalar app" style="display:none">
+        <span class="material-symbols-outlined">download</span>
+      </button>
+
+      <!-- Dropdown menu -->
+      <div id="menu-dropdown">
+        <button id="about-btn">
+          <span class="material-symbols-outlined">info</span>
+          Acerca de
+        </button>
+      </div>
+    </header>
+
+    <div id="view-landing">
 
       <div id="landing-scroll">
-        <div class="section-header">
-          <h2 class="section-title">Servicios</h2>
+        <div id="services-hero">
+          <p class="services-label">MEN'S CARE</p>
+          <h2 class="services-title">Services</h2>
         </div>
         <div id="services-list"></div>
       </div>
 
-      <div id="landing-bottom-bar">
-        <button id="mis-citas-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Mis citas
-        </button>
-        <button id="cancelar-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-          Cancelar cita
-        </button>
-      </div>
-
     </div>
 
-    <!-- Slots view: selector de fecha y hora -->
+    <!-- ── Slots view ─────────────────────────────────────────────── -->
     <div id="view-slots">
-      <div id="slots-title">¿Cuando te va bien?</div>
       <div id="slots-scroll">
+        <div id="slots-hero">
+          <p class="slots-step">PASO 2 DE 3</p>
+          <h2 id="slots-title">¿Cuándo te va bien?</h2>
+        </div>
+        <div id="date-tabs"></div>
         <div id="slots-loading">
           <div class="spinner"></div>
           <p>Consultando disponibilidad...</p>
@@ -157,41 +194,115 @@
         <div id="slots-container"></div>
       </div>
       <div id="slots-footer">
-        <button id="select-slot-btn" disabled>Seleccionar</button>
+        <div id="slots-info-row">
+          <div class="slots-info-col">
+            <span class="slots-info-label">SELECCIONADO</span>
+            <span id="slots-selected-text">—</span>
+          </div>
+          <div class="slots-info-col slots-info-col--right">
+            <span class="slots-info-label">PRECIO</span>
+            <span id="slots-selected-price">—</span>
+          </div>
+        </div>
+        <button id="select-slot-btn" disabled>
+          Seleccionar horario
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
       </div>
     </div>
 
     <!-- Summary view: resumen antes de confirmar -->
     <div id="view-summary">
       <div id="summary-scroll">
-        <div id="summary-service-block">
-          <div id="summary-icon"></div>
-          <div id="summary-service-info">
-            <div id="summary-service-name"></div>
-            <div id="summary-service-meta"></div>
+        <div class="confirm-hero">
+          <div class="confirm-circle-icon">
+            <span class="material-symbols-outlined" id="summary-svc-icon">content_cut</span>
           </div>
+          <p class="confirm-step-label">PASO 3 DE 3</p>
+          <h2 class="confirm-heading">Confirma tu reserva</h2>
         </div>
-        <div id="summary-datetime-card">
-          <div class="summary-dt-row">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span id="summary-fecha"></span>
+        <div class="confirm-details-card">
+          <div class="confirm-detail-row">
+            <span class="material-symbols-outlined confirm-detail-icon">calendar_month</span>
+            <div class="confirm-detail-body">
+              <span class="confirm-detail-label">FECHA</span>
+              <span class="confirm-detail-value" id="summary-fecha"></span>
+            </div>
           </div>
-          <div class="summary-dt-row">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="summary-hora"></span>
+          <div class="confirm-detail-row">
+            <span class="material-symbols-outlined confirm-detail-icon">schedule</span>
+            <div class="confirm-detail-body">
+              <span class="confirm-detail-label">HORA</span>
+              <span class="confirm-detail-value" id="summary-hora"></span>
+            </div>
+          </div>
+          <div class="confirm-detail-row">
+            <span class="material-symbols-outlined confirm-detail-icon">content_cut</span>
+            <div class="confirm-detail-body">
+              <span class="confirm-detail-label">SERVICIO</span>
+              <span class="confirm-detail-value" id="summary-service-name"></span>
+            </div>
           </div>
         </div>
       </div>
       <div id="summary-footer">
-        <button id="confirm-booking-btn">Confirmar reserva</button>
-        <button id="change-slot-btn">Cambiar fecha u hora</button>
+        <button id="confirm-booking-btn" class="confirm-cta-btn">
+          Confirmar reserva
+          <span class="material-symbols-outlined">arrow_forward</span>
+        </button>
+        <button id="change-slot-btn" class="confirm-secondary-btn">Cambiar fecha u hora</button>
       </div>
     </div>
 
-    <!-- Citas view: mis citas sin chat -->
+    <!-- Confirmation view -->
+    <div id="view-confirmation">
+      <div id="confirm-scroll">
+        <div class="confirm-hero">
+          <div class="confirm-circle-icon" id="confirm-circle">
+            <span class="material-symbols-outlined" id="confirm-icon-symbol">check</span>
+          </div>
+          <p class="confirm-step-label" id="confirm-badge">RESERVA CONFIRMADA</p>
+          <h1 class="confirm-heading" id="confirm-title">¡Perfecto!</h1>
+        </div>
+        <div class="confirm-details-card" id="confirm-details-card">
+          <div class="confirm-detail-row">
+            <span class="material-symbols-outlined confirm-detail-icon">calendar_month</span>
+            <div class="confirm-detail-body">
+              <span class="confirm-detail-label">FECHA</span>
+              <span class="confirm-detail-value" id="confirm-fecha"></span>
+            </div>
+          </div>
+          <div class="confirm-detail-row">
+            <span class="material-symbols-outlined confirm-detail-icon">schedule</span>
+            <div class="confirm-detail-body">
+              <span class="confirm-detail-label">HORA</span>
+              <span class="confirm-detail-value" id="confirm-hora"></span>
+            </div>
+          </div>
+          <div class="confirm-detail-row">
+            <span class="material-symbols-outlined confirm-detail-icon">content_cut</span>
+            <div class="confirm-detail-body">
+              <span class="confirm-detail-label">SERVICIO</span>
+              <span class="confirm-detail-value" id="confirm-servicio"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="confirm-footer">
+        <button id="confirm-ok-btn" class="confirm-cta-btn">
+          Vale, ¡perfecto!
+          <span class="material-symbols-outlined">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Citas view: mis citas -->
     <div id="view-citas">
-      <div id="citas-title">Mis proximas citas</div>
       <div id="citas-scroll">
+        <div id="citas-hero">
+          <p class="citas-label">YOUR SCHEDULE</p>
+          <h2 class="citas-title">My Bookings</h2>
+        </div>
         <div id="citas-loading">
           <div class="spinner"></div>
           <p>Cargando tus citas...</p>
@@ -200,25 +311,59 @@
       </div>
     </div>
 
-    <!-- Confirmation view -->
+    <!-- Confirmation view (booking + cancel) -->
     <div id="view-confirmation">
-      <div id="confirm-content">
-        <div id="confirm-icon-wrap">
-          <!-- Booking: checkmark verde -->
-          <svg id="icon-check" class="confirm-checkmark" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
-            <circle class="checkmark-circle" cx="26" cy="26" r="24" fill="none"/>
-            <path class="checkmark-check" fill="none" d="M14 27 l8 8 l16 -16"/>
-          </svg>
-          <!-- Cancel: X gris -->
-          <svg id="icon-cancel" class="confirm-checkmark" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" style="display:none">
-            <circle class="cancel-circle" cx="26" cy="26" r="24" fill="none"/>
-            <path class="cancel-x1" fill="none" d="M17 17 l18 18"/>
-            <path class="cancel-x2" fill="none" d="M35 17 l-18 18"/>
-          </svg>
+      <div id="confirm-scroll">
+        <div class="confirm-hero">
+          <div class="confirm-circle-icon" id="confirm-circle">
+            <span class="material-symbols-outlined" id="confirm-icon-symbol">check</span>
+          </div>
+          <p class="confirm-step-label" id="confirm-badge">RESERVA CONFIRMADA</p>
+          <h1 class="confirm-heading" id="confirm-title">¡Perfecto!</h1>
         </div>
-        <h1 id="confirm-title">Perfecto!</h1>
+        <div class="confirm-details-card" id="confirm-details-card">
+          <div class="confirm-detail-row">
+            <span class="material-symbols-outlined confirm-detail-icon">calendar_month</span>
+            <div class="confirm-detail-body">
+              <span class="confirm-detail-label" id="confirm-fecha-label">FECHA</span>
+              <span class="confirm-detail-value" id="confirm-fecha"></span>
+            </div>
+          </div>
+          <div class="confirm-detail-row">
+            <span class="material-symbols-outlined confirm-detail-icon">schedule</span>
+            <div class="confirm-detail-body">
+              <span class="confirm-detail-label">HORA</span>
+              <span class="confirm-detail-value" id="confirm-hora"></span>
+            </div>
+          </div>
+          <div class="confirm-detail-row">
+            <span class="material-symbols-outlined confirm-detail-icon">content_cut</span>
+            <div class="confirm-detail-body">
+              <span class="confirm-detail-label">SERVICIO</span>
+              <span class="confirm-detail-value" id="confirm-servicio"></span>
+            </div>
+          </div>
+        </div>
         <p id="confirm-message"></p>
-        <button id="confirm-ok-btn">Vale, perfecto!</button>
+      </div>
+      <div id="confirm-footer">
+        <button id="confirm-ok-btn" class="confirm-cta-btn">
+          Vale, ¡perfecto!
+          <span class="material-symbols-outlined">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal alerta cancelación -->
+    <div id="cancel-modal" style="display:none">
+      <div class="cancel-modal-box">
+        <div class="cancel-modal-icon">
+          <span class="material-symbols-outlined">calendar_month</span>
+        </div>
+        <h3 class="cancel-modal-title">¿Cancelar esta cita?</h3>
+        <p class="cancel-modal-body">Esta acción no se puede deshacer y el horario quedará disponible para otros clientes.</p>
+        <button id="cancel-modal-confirm" class="cancel-modal-accept">Aceptar</button>
+        <button id="cancel-modal-dismiss" class="cancel-modal-cancel">Cancelar</button>
       </div>
     </div>
 
@@ -229,6 +374,42 @@
         <input id="chat-input" type="text" placeholder="Escribe un mensaje..." autocomplete="off" disabled />
         <button id="send-btn" disabled>&#9658;</button>
       </footer>
+    </div>
+
+    <!-- ── Bottom nav (compartido: landing, slots, citas) ──────────── -->
+    <nav id="bottom-nav" style="display:none">
+      <button class="nav-tab nav-tab--active" id="nav-services">
+        <span class="material-symbols-outlined">content_cut</span>
+        <span>Servicios</span>
+      </button>
+      <button class="nav-tab" id="mis-citas-btn">
+        <span class="material-symbols-outlined">event_available</span>
+        <span>Mis citas</span>
+      </button>
+      <button class="nav-tab" id="nav-profile">
+        <span class="material-symbols-outlined">person</span>
+        <span>Perfil</span>
+      </button>
+    </nav>
+
+    <!-- Profile bottom sheet -->
+    <div id="profile-panel-backdrop" style="display:none"></div>
+    <div id="profile-panel" style="display:none">
+      <div class="profile-panel-handle"></div>
+      <div class="profile-panel-user">
+        <div class="profile-panel-avatar">
+          <span class="material-symbols-outlined">person</span>
+        </div>
+        <div class="profile-panel-info">
+          <span id="profile-panel-name">-</span>
+          <span id="profile-panel-phone">-</span>
+        </div>
+      </div>
+      <div class="profile-panel-divider"></div>
+      <button class="profile-panel-item" id="profile-logout-btn">
+        <span class="material-symbols-outlined">logout</span>
+        <span>Cerrar sesion</span>
+      </button>
     </div>
 
     <!-- Banner de actualizacion -->
@@ -244,6 +425,6 @@
 
   </div>
 
-  <script src="js/app.js?v=11.0"></script>
+  <script src="js/app.js?v=11.15"></script>
 </body>
 </html>
