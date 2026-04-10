@@ -958,6 +958,13 @@ async function sendMessage(text) {
 // ── Navegación auth ───────────────────────────────────────────────
 document.getElementById('go-register-btn').addEventListener('click', e => { e.preventDefault(); showRegisterView(); });
 document.getElementById('go-login-btn').addEventListener('click',    e => { e.preventDefault(); showLoginView(); });
+document.getElementById('email-sent-login-btn').addEventListener('click', () => {
+  // Resetear estado del registro antes de ir al login
+  document.querySelector('#view-register .auth-welcome').style.display = '';
+  document.querySelector('#view-register .auth-form').style.display = '';
+  document.getElementById('reg-email-sent').style.display = 'none';
+  showLoginView();
+});
 document.getElementById('forgot-password-btn').addEventListener('click', () => showForgotPasswordView());
 document.getElementById('go-login-from-forgot-btn').addEventListener('click', e => { e.preventDefault(); showLoginView(); });
 
@@ -1030,18 +1037,7 @@ regBtn.addEventListener('click', async () => {
     });
     if (error) throw error;
 
-    // Insertar en tabla clientes
-    if (data.user) {
-      await sb.from('clientes').insert({
-        barberia_id:  barberId,
-        nombre,
-        apellido,
-        telefono,
-        email,
-        fecha_registro: new Date().toISOString().slice(0, 10),
-        auth_user_id: data.user.id
-      });
-    }
+    // clientes se inserta automáticamente via trigger on_auth_user_created
 
     if (data.session) {
       // Verificación desactivada en Supabase → sesión activa de inmediato
@@ -1049,9 +1045,11 @@ regBtn.addEventListener('click', async () => {
       renderServiceCards();
       showLandingView();
     } else {
-      // Verificación activa → pedir al usuario que confirme el email
-      msgEl.textContent = '¡Cuenta creada! Revisa tu email para verificar tu cuenta.';
-      msgEl.classList.add('auth-msg--success');
+      // Verificación activa → mostrar pantalla "revisa tu correo"
+      document.querySelector('#view-register .auth-welcome').style.display = 'none';
+      document.querySelector('#view-register .auth-form').style.display = 'none';
+      document.getElementById('email-sent-address').textContent = email;
+      document.getElementById('reg-email-sent').style.display = 'flex';
       regBtn.disabled = false;
       regBtn.textContent = 'Crear cuenta';
     }

@@ -1850,6 +1850,52 @@ body {
 .auth-msg--error   { color: var(--color-error); }
 .auth-msg--success { color: var(--color-secondary); font-weight: 600; }
 
+/* ── Email verification sent ─────────────────────────────────────── */
+#reg-email-sent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 1rem 1rem;
+  gap: 0.75rem;
+}
+.email-sent-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+.email-sent-icon .material-symbols-outlined {
+  font-size: 2rem;
+  color: #fff;
+}
+.email-sent-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-on-background);
+  margin: 0;
+}
+.email-sent-body {
+  font-size: 0.95rem;
+  color: var(--color-on-surface);
+  line-height: 1.6;
+  margin: 0;
+}
+.email-sent-hint {
+  font-size: 0.8rem;
+  color: var(--color-on-surface);
+  opacity: 0.6;
+  margin: 0;
+}
+#email-sent-login-btn {
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
 /* ── Profile bottom sheet ────────────────────────────────────────── */
 #profile-panel-backdrop {
   position: fixed;

@@ -158,6 +158,17 @@
           <p id="reg-msg" class="auth-msg"></p>
           <p class="auth-switch">¿Ya tienes cuenta? <a href="#" id="go-login-btn">Inicia sesión</a></p>
         </div>
+
+        <!-- Estado: email de verificación enviado -->
+        <div id="reg-email-sent" style="display:none">
+          <div class="email-sent-icon">
+            <span class="material-symbols-outlined">mark_email_unread</span>
+          </div>
+          <h2 class="email-sent-title">Revisa tu correo</h2>
+          <p class="email-sent-body">Te hemos enviado un enlace de verificación a <strong id="email-sent-address"></strong>.<br>Haz clic en él para activar tu cuenta.</p>
+          <p class="email-sent-hint">¿No lo ves? Revisa la carpeta de spam.</p>
+          <button id="email-sent-login-btn" class="auth-cta-btn">Ir al inicio de sesión</button>
+        </div>
       </div>
     </div>
 
