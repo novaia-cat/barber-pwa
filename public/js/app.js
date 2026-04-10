@@ -94,11 +94,13 @@ function hideAllViews() {
 function showForgotPasswordView() {
   hideAllViews();
   viewForgotPassword.classList.add('active');
+  appHeader.style.display = 'flex';
 }
 
 function showNewPasswordView() {
   hideAllViews();
   viewNewPassword.classList.add('active');
+  appHeader.style.display = 'flex';
 }
 
 function closeProfilePanel() {
@@ -111,11 +113,13 @@ function closeProfilePanel() {
 function showLoginView() {
   hideAllViews();
   viewLogin.classList.add('active');
+  appHeader.style.display = 'flex';
 }
 
 function showRegisterView() {
   hideAllViews();
   viewRegister.classList.add('active');
+  appHeader.style.display = 'flex';
 }
 
 function showLandingView() {
