@@ -277,8 +277,11 @@ async function loadConfig() {
     const res = await fetch(WEBHOOK_CONFIG + '?barber_id=' + barberId);
     if (!res.ok) throw new Error('config error');
     const cfg = await res.json();
+    console.log('[config]', cfg);
     applyConfig(cfg);
-    if (cfg.servicios && cfg.servicios.length) servicesCache = cfg.servicios;
+    if (cfg.servicios && cfg.servicios.length) {
+      servicesCache = cfg.servicios.map(s => ({ ...s, precio: s.precio ?? s.precio_eur ?? 0 }));
+    }
   } catch {
     barberName.textContent = 'Barberia';
   }
@@ -734,7 +737,9 @@ async function fetchAndRenderCitas() {
         mensaje:   ''
       })
     });
-    const data = await res.json();
+    const raw = await res.json();
+    const data = Array.isArray(raw) ? raw[0] : raw;
+    console.log('[mis-citas]', data);
     citasLoading.style.display = 'none';
 
     if (data.citas && data.citas.length) {

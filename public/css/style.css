@@ -1561,7 +1561,6 @@ body {
   align-items: center;
   justify-content: center;
   padding: 40px 32px;
-  min-height: max(884px, 100dvh);
   transition: opacity 0.3s ease;
 }
 
