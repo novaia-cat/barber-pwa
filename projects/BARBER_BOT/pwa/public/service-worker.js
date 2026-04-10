@@ -1,4 +1,4 @@
-const CACHE_NAME = 'barber-pwa-v11.0';
+const CACHE_NAME = 'barber-pwa-v12.1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -12,7 +12,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
   );
-  // No skipWaiting aquí — esperamos confirmación del usuario
+  self.skipWaiting(); // Activar inmediatamente sin esperar confirmación
 });
 
 // Activar: limpiar caches viejas
@@ -25,17 +25,26 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: cache first para assets, network first para API
+// Fetch: network first para HTML, cache first para assets
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Dev local: nunca cachear (evita stale assets en Live Server)
+  // Dev local: nunca cachear
   if (url.hostname === '127.0.0.1' || url.hostname === 'localhost') return;
 
-  // API n8n: siempre red
+  // API n8n y Supabase: siempre red
   if (url.hostname.includes('n8n.novaia.cat')) return;
+  if (url.hostname.includes('supabase.co')) return;
 
-  // Assets estaticos: cache first
+  // HTML (navigate): network first → siempre version fresca
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // CSS, JS, iconos: cache first
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
   );
