@@ -293,7 +293,7 @@ function applyConfig(cfg) {
     if (barberNameHdr) barberNameHdr.textContent = cfg.nombre;
     barberNameText = cfg.nombre;
   }
-  if (cfg.logo_url) {
+  if (cfg.logo_url && logo) {
     const placeholder = document.getElementById('logo-placeholder');
     logo.alt = cfg.nombre || 'Logo';
     logo.onload  = () => { logo.style.display = 'block'; if (placeholder) placeholder.style.display = 'none'; };
