@@ -300,7 +300,10 @@ function applyConfig(cfg) {
     logo.onerror = () => { logo.style.display = 'none'; };
     logo.src = cfg.logo_url;
   }
-  if (cfg.color_primary) document.documentElement.style.setProperty('--color-primary', cfg.color_primary);
+  if (cfg.color_primary) {
+    const primary = '#' + cfg.color_primary.replace(/^#+/, '');
+    document.documentElement.style.setProperty('--color-primary', primary);
+  }
   // color_secondary ignorado — fijado al bronze del design system Artisan Cut
   document.documentElement.style.setProperty('--color-secondary', '#725b3f');
   document.documentElement.style.setProperty('--color-bubble-user', '#725b3f');
