@@ -703,14 +703,13 @@ async function executeBooking() {
     });
 
     // Poblar detalles en la pantalla de confirmación
-    console.log('[booking-ok] mostrando confirmacion');
     document.getElementById('confirm-fecha').textContent    = booking.fechaDisplay;
     document.getElementById('confirm-hora').textContent     = booking.hora;
     document.getElementById('confirm-servicio').textContent = svc.nombre;
 
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Confirmar reserva';
     showConfirmationView('booking', showLandingView);
-    console.log('[booking-ok] summary active:', viewSummary.classList.contains('active'), '| summary display:', getComputedStyle(viewSummary).display);
-    console.log('[booking-ok] confirm active:', viewConfirmation.classList.contains('active'), '| confirm display:', getComputedStyle(viewConfirmation).display);
   } catch (err) {
     console.error('[booking-error]', err);
     confirmBtn.disabled = false;
