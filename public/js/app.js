@@ -703,11 +703,13 @@ async function executeBooking() {
     });
 
     // Poblar detalles en la pantalla de confirmación
+    console.log('[booking-ok] mostrando confirmacion');
     document.getElementById('confirm-fecha').textContent    = booking.fechaDisplay;
     document.getElementById('confirm-hora').textContent     = booking.hora;
     document.getElementById('confirm-servicio').textContent = svc.nombre;
 
     showConfirmationView('booking', showLandingView);
+    console.log('[booking-ok] confirmacion mostrada');
   } catch (err) {
     console.error('[booking-error]', err);
     confirmBtn.disabled = false;
