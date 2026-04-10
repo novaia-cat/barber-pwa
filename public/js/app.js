@@ -1109,7 +1109,10 @@ document.getElementById('forgot-send-btn').addEventListener('click', async () =>
   });
 
   if (error) {
-    msgEl.textContent = 'Error al enviar. Comprueba el email.';
+    const msg = error.status === 429
+      ? 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.'
+      : 'Error al enviar. Comprueba el email.';
+    msgEl.textContent = msg;
     msgEl.classList.add('auth-msg--error');
   } else {
     msgEl.textContent = '¡Enlace enviado! Revisa tu bandeja de entrada.';
