@@ -881,7 +881,11 @@ function cancelCitaNativa(cita, cardEl) {
 
   cancelModal.style.display = 'flex';
 
-  const cleanup = () => { cancelModal.style.display = 'none'; };
+  const cleanup = () => {
+    cancelModal.style.display = 'none';
+    modalConfirm.textContent = 'Aceptar';
+    modalConfirm.disabled = false;
+  };
 
   modalDismiss.onclick = cleanup;
   cancelModal.onclick  = e => { if (e.target === cancelModal) cleanup(); };
