@@ -95,12 +95,14 @@ function showForgotPasswordView() {
   hideAllViews();
   viewForgotPassword.classList.add('active');
   appHeader.style.display = 'flex';
+  requestAnimationFrame(updateHeaderHeight);
 }
 
 function showNewPasswordView() {
   hideAllViews();
   viewNewPassword.classList.add('active');
   appHeader.style.display = 'flex';
+  requestAnimationFrame(updateHeaderHeight);
 }
 
 function closeProfilePanel() {
@@ -114,12 +116,14 @@ function showLoginView() {
   hideAllViews();
   viewLogin.classList.add('active');
   appHeader.style.display = 'flex';
+  requestAnimationFrame(updateHeaderHeight);
 }
 
 function showRegisterView() {
   hideAllViews();
   viewRegister.classList.add('active');
   appHeader.style.display = 'flex';
+  requestAnimationFrame(updateHeaderHeight);
 }
 
 function showLandingView() {
@@ -225,6 +229,13 @@ function showChatView(title) {
 function clearChat() {
   chatMessages.innerHTML = '';
 }
+
+// ── Header height → CSS var (multiresolucion) ─────────────────────
+function updateHeaderHeight() {
+  const h = appHeader.offsetHeight;
+  if (h > 0) document.documentElement.style.setProperty('--header-h', h + 'px');
+}
+window.addEventListener('resize', updateHeaderHeight);
 
 // ── Back button ───────────────────────────────────────────────────
 backBtn.addEventListener('click', handleBack);

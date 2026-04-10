@@ -1667,7 +1667,7 @@ body {
   background: var(--color-bg);
   overflow-y: auto;
   min-height: 100dvh;
-  padding-top: 56px;
+  padding-top: var(--header-h, 56px);
 }
 
 #view-login.active,
