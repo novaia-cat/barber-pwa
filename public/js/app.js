@@ -709,7 +709,8 @@ async function executeBooking() {
     document.getElementById('confirm-servicio').textContent = svc.nombre;
 
     showConfirmationView('booking', showLandingView);
-    console.log('[booking-ok] confirmacion mostrada');
+    console.log('[booking-ok] summary active:', viewSummary.classList.contains('active'), '| summary display:', getComputedStyle(viewSummary).display);
+    console.log('[booking-ok] confirm active:', viewConfirmation.classList.contains('active'), '| confirm display:', getComputedStyle(viewConfirmation).display);
   } catch (err) {
     console.error('[booking-error]', err);
     confirmBtn.disabled = false;
