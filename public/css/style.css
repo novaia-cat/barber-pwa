@@ -1693,11 +1693,15 @@ body {
 .auth-menu-btn {
   background: none;
   border: none;
-  font-size: 1.4rem;
   color: var(--color-on-surface);
   cursor: pointer;
   padding: 4px 8px;
+  display: flex;
+  align-items: center;
   -webkit-tap-highlight-color: transparent;
+}
+.auth-menu-btn .material-symbols-outlined {
+  font-size: 1.5rem;
 }
 
 .auth-body {
