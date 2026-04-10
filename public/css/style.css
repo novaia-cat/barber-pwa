@@ -1652,7 +1652,9 @@ body {
 
 /* ── Auth views (Login / Registro) ──────────────────────────────── */
 #view-login,
-#view-register {
+#view-register,
+#view-forgot-password,
+#view-new-password {
   display: none;
   flex-direction: column;
   position: absolute;
@@ -1664,7 +1666,9 @@ body {
 }
 
 #view-login.active,
-#view-register.active {
+#view-register.active,
+#view-forgot-password.active,
+#view-new-password.active {
   display: flex;
 }
 

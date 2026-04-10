@@ -1233,15 +1233,18 @@ if ('serviceWorker' in navigator && !isLocalhost) {
   viewLoading.classList.add('hidden');
   setTimeout(() => { viewLoading.style.display = 'none'; }, 320);
 
-  // Detectar redirect de recuperación de contraseña (#type=recovery en el hash)
+  // Detectar redirects de Supabase en el hash
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
-  if (hashParams.get('type') === 'recovery') {
-    history.replaceState(null, '', window.location.pathname);
+  const hashType = hashParams.get('type');
+  history.replaceState(null, '', window.location.pathname);
+
+  if (hashType === 'recovery') {
+    // Reset de contraseña — Supabase ya estableció sesión temporal
     showNewPasswordView();
     return;
   }
 
-  // Restaurar sesión Supabase existente
+  // Restaurar sesión Supabase existente (incluye type=signup tras confirmar email)
   const { data: { session: sbSess } } = await sb.auth.getSession();
   if (sbSess) {
     const meta = sbSess.user?.user_metadata || {};
@@ -1249,6 +1252,14 @@ if ('serviceWorker' in navigator && !isLocalhost) {
     renderServiceCards();
     showLandingView();
   } else {
-    showLoginView();
+    if (hashType === 'signup') {
+      // Email confirmado pero sesión no activa → ir al login con mensaje
+      showLoginView();
+      const msgEl = document.getElementById('login-msg');
+      msgEl.textContent = '✓ Email verificado. Ya puedes iniciar sesión.';
+      msgEl.className = 'auth-msg auth-msg--success';
+    } else {
+      showLoginView();
+    }
   }
 })();
