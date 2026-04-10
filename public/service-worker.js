@@ -1,4 +1,4 @@
-const CACHE_NAME = 'barber-pwa-v11.16';
+const CACHE_NAME = 'barber-pwa-v11.17';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -12,7 +12,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
   );
-  // No skipWaiting aquí — esperamos confirmación del usuario
+  self.skipWaiting(); // Activar inmediatamente sin esperar confirmación
 });
 
 // Activar: limpiar caches viejas
