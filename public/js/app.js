@@ -708,7 +708,8 @@ async function executeBooking() {
     document.getElementById('confirm-servicio').textContent = svc.nombre;
 
     showConfirmationView('booking', showLandingView);
-  } catch {
+  } catch (err) {
+    console.error('[booking-error]', err);
     confirmBtn.disabled = false;
     confirmBtn.textContent = 'Confirmar reserva';
     showToast('Error al reservar. Intentalo de nuevo.');
