@@ -272,6 +272,7 @@ body {
   padding: 14px 12px 10px;
   flex-shrink: 0;
   position: relative;
+  z-index: 101;
   background: var(--color-bg);
 }
 
@@ -1662,10 +1663,11 @@ body {
   flex-direction: column;
   position: absolute;
   inset: 0;
-  z-index: 100;
+  z-index: 99;
   background: var(--color-bg);
   overflow-y: auto;
   min-height: 100dvh;
+  padding-top: 56px;
 }
 
 #view-login.active,
