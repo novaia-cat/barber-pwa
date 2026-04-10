@@ -60,6 +60,9 @@ body {
 
 /* ── Header ──────────────────────────────────────────────────────── */
 #chat-header {
+  display: none;
+}
+#chat-header.visible {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;

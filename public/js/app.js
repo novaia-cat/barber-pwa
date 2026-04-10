@@ -955,6 +955,12 @@ async function sendMessage(text) {
   }
 }
 
+// ── Menú About en pantallas auth ─────────────────────────────────
+['login-menu-btn', 'register-menu-btn'].forEach(id => {
+  const btn = document.getElementById(id);
+  if (btn) btn.addEventListener('click', () => aboutModal.classList.add('active'));
+});
+
 // ── Navegación auth ───────────────────────────────────────────────
 document.getElementById('go-register-btn').addEventListener('click', e => { e.preventDefault(); showRegisterView(); });
 document.getElementById('go-login-btn').addEventListener('click',    e => { e.preventDefault(); showLoginView(); });
