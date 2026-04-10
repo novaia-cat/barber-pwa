@@ -1841,6 +1841,15 @@ body {
   text-decoration: none;
 }
 
+.auth-msg {
+  font-size: 0.82rem;
+  text-align: center;
+  min-height: 1.1rem;
+  padding: 2px 0;
+}
+.auth-msg--error   { color: var(--color-error); }
+.auth-msg--success { color: var(--color-secondary); font-weight: 600; }
+
 /* ── Profile bottom sheet ────────────────────────────────────────── */
 #profile-panel-backdrop {
   position: fixed;

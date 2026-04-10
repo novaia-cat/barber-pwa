@@ -7,6 +7,12 @@ const N8N_BASE = 'https://n8n.novaia.cat';
 const WEBHOOK_CHAT = N8N_BASE + '/webhook/barber-chat';
 const WEBHOOK_CONFIG = N8N_BASE + '/webhook/barber-get-config';
 
+// ── Supabase ──────────────────────────────────────────────────────
+// TODO: reemplazar con los valores de tu proyecto Supabase Cloud
+const SUPABASE_URL      = 'https://cynnuucihcniqusomgol.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5bm51dWNpaGNuaXF1c29tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MzQ5MTIsImV4cCI6MjA5MTQxMDkxMn0.xwH3ZDjcmtTwyrJZ5lyoyr8nsHKb8gWPEscJQaAJNmo';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 function getBarberId() {
   const host = window.location.hostname;
   const parts = host.split('.');
@@ -14,7 +20,7 @@ function getBarberId() {
 }
 
 const barberId = getBarberId();
-let session = JSON.parse(localStorage.getItem('barber_session_' + barberId) || 'null');
+let session = null; // populated from Supabase on init
 
 // DOM refs
 const chatMessages  = document.getElementById('chat-messages');
@@ -45,9 +51,11 @@ const viewRegister     = document.getElementById('view-register');
 const viewLanding      = document.getElementById('view-landing');
 const viewSlots        = document.getElementById('view-slots');
 const viewSummary      = document.getElementById('view-summary');
-const viewConfirmation = document.getElementById('view-confirmation');
-const viewCitas        = document.getElementById('view-citas');
-const viewChat         = document.getElementById('view-chat');
+const viewConfirmation    = document.getElementById('view-confirmation');
+const viewCitas           = document.getElementById('view-citas');
+const viewChat            = document.getElementById('view-chat');
+const viewForgotPassword  = document.getElementById('view-forgot-password');
+const viewNewPassword     = document.getElementById('view-new-password');
 const citasLoading  = document.getElementById('citas-loading');
 const citasContainer= document.getElementById('citas-container');
 const appHeader     = document.getElementById('app-header');
@@ -70,6 +78,8 @@ const changeSlotBtn = document.getElementById('change-slot-btn');
 function hideAllViews() {
   viewLogin.classList.remove('active');
   viewRegister.classList.remove('active');
+  viewForgotPassword.classList.remove('active');
+  viewNewPassword.classList.remove('active');
   viewLanding.style.display = 'none';
   viewSlots.classList.remove('active');
   viewSummary.classList.remove('active');
@@ -79,6 +89,16 @@ function hideAllViews() {
   appHeader.style.display = 'none';
   bottomNav.style.display = 'none';
   closeProfilePanel();
+}
+
+function showForgotPasswordView() {
+  hideAllViews();
+  viewForgotPassword.classList.add('active');
+}
+
+function showNewPasswordView() {
+  hideAllViews();
+  viewNewPassword.classList.add('active');
 }
 
 function closeProfilePanel() {
@@ -414,9 +434,9 @@ function openProfilePanel() {
 document.getElementById('nav-profile').addEventListener('click', openProfilePanel);
 profilePanelBackdrop.addEventListener('click', closeProfilePanel);
 
-profileLogoutBtn.addEventListener('click', () => {
+profileLogoutBtn.addEventListener('click', async () => {
   if (confirm('Cerrar sesion?')) {
-    localStorage.removeItem('barber_session_' + barberId);
+    await sb.auth.signOut();
     session = null;
     closeProfilePanel();
     showLoginView();
@@ -938,49 +958,190 @@ async function sendMessage(text) {
 // ── Navegación auth ───────────────────────────────────────────────
 document.getElementById('go-register-btn').addEventListener('click', e => { e.preventDefault(); showRegisterView(); });
 document.getElementById('go-login-btn').addEventListener('click',    e => { e.preventDefault(); showLoginView(); });
-document.getElementById('login-btn').addEventListener('click', () => {
-  // Sin PocketBase aún: si hay sesión entra, si no va a registro
-  if (session) { showLandingView(); } else { showRegisterView(); }
+document.getElementById('forgot-password-btn').addEventListener('click', () => showForgotPasswordView());
+document.getElementById('go-login-from-forgot-btn').addEventListener('click', e => { e.preventDefault(); showLoginView(); });
+
+// ── Login con Supabase ────────────────────────────────────────────
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const msgEl    = document.getElementById('login-msg');
+  msgEl.textContent = ''; msgEl.className = 'auth-msg';
+
+  if (!email)    { document.getElementById('login-email').focus();    return; }
+  if (!password) { document.getElementById('login-password').focus(); return; }
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    const meta = data.user?.user_metadata || {};
+    session = { nombre: meta.nombre || '', apellido: meta.apellido || '', telefono: meta.telefono || '', email };
+    renderServiceCards();
+    showLandingView();
+  } catch {
+    msgEl.textContent = 'Email o contraseña incorrectos.';
+    msgEl.classList.add('auth-msg--error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+  }
 });
 
+[document.getElementById('login-email'), document.getElementById('login-password')].forEach(el => {
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-btn').click(); });
+});
+
+// ── Registro con Supabase ─────────────────────────────────────────
 regBtn.addEventListener('click', async () => {
   const nombre   = regNombre.value.trim();
   const apellido = regApellido.value.trim();
   const telefono = regTelefono.value.trim().replace(/\s/g, '');
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const passConf = document.getElementById('reg-password-confirm').value;
+  const msgEl    = document.getElementById('reg-msg');
+  msgEl.textContent = ''; msgEl.className = 'auth-msg';
 
   if (!nombre   || nombre.length < 2)    { regNombre.focus();   return; }
   if (!apellido || apellido.length < 2)  { regApellido.focus(); return; }
   if (!telefono.match(/^\d{9,15}$/))     { regTelefono.focus(); return; }
-  if (!regRgpd.checked)                  { rgpdLink.click();    return; }
+  if (!email.match(/.+@.+\..+/))        { document.getElementById('reg-email').focus(); return; }
+  if (password.length < 6)              { document.getElementById('reg-password').focus(); return; }
+  if (password !== passConf) {
+    msgEl.textContent = 'Las contraseñas no coinciden.';
+    msgEl.classList.add('auth-msg--error');
+    document.getElementById('reg-password-confirm').focus();
+    return;
+  }
+  if (!regRgpd.checked) { rgpdLink.click(); return; }
 
   regBtn.disabled = true;
-  regBtn.textContent = 'Registrando...';
+  regBtn.textContent = 'Creando cuenta...';
 
   try {
-    const res = await fetch(WEBHOOK_CHAT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ barber_id: barberId, telefono, nombre, apellido, mensaje: 'hola' })
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: { data: { nombre, apellido, telefono } }
     });
-    await res.json();
+    if (error) throw error;
 
-    session = { nombre, apellido, telefono };
-    localStorage.setItem('barber_session_' + barberId, JSON.stringify(session));
+    // Insertar en tabla clientes
+    if (data.user) {
+      await sb.from('clientes').insert({
+        barberia_id:  barberId,
+        nombre,
+        apellido,
+        telefono,
+        email,
+        fecha_registro: new Date().toISOString().slice(0, 10),
+        auth_user_id: data.user.id
+      });
+    }
 
-    if (chatHeader) { chatHeader.style.display = 'none'; }
-
-    renderServiceCards();
-    showLandingView();
-  } catch {
-    // silently fail, user can retry
-  } finally {
+    if (data.session) {
+      // Verificación desactivada en Supabase → sesión activa de inmediato
+      session = { nombre, apellido, telefono, email };
+      renderServiceCards();
+      showLandingView();
+    } else {
+      // Verificación activa → pedir al usuario que confirme el email
+      msgEl.textContent = '¡Cuenta creada! Revisa tu email para verificar tu cuenta.';
+      msgEl.classList.add('auth-msg--success');
+      regBtn.disabled = false;
+      regBtn.textContent = 'Crear cuenta';
+    }
+  } catch (err) {
+    const isAlreadyRegistered = err.message?.toLowerCase().includes('already');
+    msgEl.textContent = isAlreadyRegistered
+      ? 'Este email ya tiene una cuenta. Inicia sesión.'
+      : 'Error al crear la cuenta. Inténtalo de nuevo.';
+    msgEl.classList.add('auth-msg--error');
     regBtn.disabled = false;
-    regBtn.textContent = 'Empezar';
+    regBtn.textContent = 'Crear cuenta';
   }
 });
 
-[regNombre, regApellido, regTelefono].forEach(el => {
+[regNombre, regApellido, regTelefono,
+ document.getElementById('reg-email'),
+ document.getElementById('reg-password'),
+ document.getElementById('reg-password-confirm')].forEach(el => {
   el.addEventListener('keydown', e => { if (e.key === 'Enter') regBtn.click(); });
+});
+
+// ── Recuperar contraseña ──────────────────────────────────────────
+document.getElementById('forgot-send-btn').addEventListener('click', async () => {
+  const email = document.getElementById('forgot-email').value.trim();
+  const msgEl = document.getElementById('forgot-msg');
+  msgEl.textContent = ''; msgEl.className = 'auth-msg';
+
+  if (!email) { document.getElementById('forgot-email').focus(); return; }
+
+  const btn = document.getElementById('forgot-send-btn');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+
+  if (error) {
+    msgEl.textContent = 'Error al enviar. Comprueba el email.';
+    msgEl.classList.add('auth-msg--error');
+  } else {
+    msgEl.textContent = '¡Enlace enviado! Revisa tu bandeja de entrada.';
+    msgEl.classList.add('auth-msg--success');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Enviar enlace';
+});
+
+// ── Nueva contraseña (recovery flow) ─────────────────────────────
+document.getElementById('new-password-btn').addEventListener('click', async () => {
+  const password = document.getElementById('new-password').value;
+  const passConf = document.getElementById('new-password-confirm').value;
+  const msgEl    = document.getElementById('new-password-msg');
+  msgEl.textContent = ''; msgEl.className = 'auth-msg';
+
+  if (password.length < 6) { document.getElementById('new-password').focus(); return; }
+  if (password !== passConf) {
+    msgEl.textContent = 'Las contraseñas no coinciden.';
+    msgEl.classList.add('auth-msg--error');
+    return;
+  }
+
+  const btn = document.getElementById('new-password-btn');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const { error } = await sb.auth.updateUser({ password });
+
+  if (error) {
+    msgEl.textContent = 'Error al guardar. Solicita un nuevo enlace.';
+    msgEl.classList.add('auth-msg--error');
+    btn.disabled = false;
+    btn.textContent = 'Guardar contraseña';
+    return;
+  }
+
+  msgEl.textContent = '¡Contraseña actualizada! Iniciando sesión...';
+  msgEl.classList.add('auth-msg--success');
+
+  setTimeout(async () => {
+    const { data: { session: sbSess } } = await sb.auth.getSession();
+    if (sbSess) {
+      const meta = sbSess.user?.user_metadata || {};
+      session = { nombre: meta.nombre || '', apellido: meta.apellido || '', telefono: meta.telefono || '', email: sbSess.user.email };
+      renderServiceCards();
+      showLandingView();
+    } else {
+      showLoginView();
+    }
+  }, 1500);
 });
 
 // ── Chat activo ───────────────────────────────────────────────────
@@ -1074,9 +1235,19 @@ if ('serviceWorker' in navigator && !isLocalhost) {
   viewLoading.classList.add('hidden');
   setTimeout(() => { viewLoading.style.display = 'none'; }, 320);
 
-  if (session) {
-    if (chatHeader) { chatHeader.style.display = 'none'; }
+  // Detectar redirect de recuperación de contraseña (#type=recovery en el hash)
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+  if (hashParams.get('type') === 'recovery') {
+    history.replaceState(null, '', window.location.pathname);
+    showNewPasswordView();
+    return;
+  }
 
+  // Restaurar sesión Supabase existente
+  const { data: { session: sbSess } } = await sb.auth.getSession();
+  if (sbSess) {
+    const meta = sbSess.user?.user_metadata || {};
+    session = { nombre: meta.nombre || '', apellido: meta.apellido || '', telefono: meta.telefono || '', email: sbSess.user.email };
     renderServiceCards();
     showLandingView();
   } else {
