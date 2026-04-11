@@ -13,6 +13,13 @@ const SUPABASE_URL      = 'https://cynnuucihcniqusomgol.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5bm51dWNpaGNuaXF1c29tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MzQ5MTIsImV4cCI6MjA5MTQxMDkxMn0.xwH3ZDjcmtTwyrJZ5lyoyr8nsHKb8gWPEscJQaAJNmo';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ── Auth state listener (Supabase v2 PKCE) ────────────────────────
+sb.auth.onAuthStateChange((event, _session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    showNewPasswordView();
+  }
+});
+
 function getBarberId() {
   const host = window.location.hostname;
   const parts = host.split('.');
@@ -881,11 +888,7 @@ function cancelCitaNativa(cita, cardEl) {
 
   cancelModal.style.display = 'flex';
 
-  const cleanup = () => {
-    cancelModal.style.display = 'none';
-    modalConfirm.textContent = 'Aceptar';
-    modalConfirm.disabled = false;
-  };
+  const cleanup = () => { cancelModal.style.display = 'none'; };
 
   modalDismiss.onclick = cleanup;
   cancelModal.onclick  = e => { if (e.target === cancelModal) cleanup(); };
@@ -1261,16 +1264,17 @@ if ('serviceWorker' in navigator && !isLocalhost) {
   viewLoading.classList.add('hidden');
   setTimeout(() => { viewLoading.style.display = 'none'; }, 320);
 
-  // Detectar redirects de Supabase en el hash
+  // Supabase v2 PKCE: si hay ?code en la URL, onAuthStateChange gestiona el redirect
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('code')) {
+    history.replaceState(null, '', window.location.pathname);
+    return; // PASSWORD_RECOVERY (u otro evento) disparará onAuthStateChange
+  }
+
+  // Detectar redirects legacy en el hash (signup confirmation)
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
   const hashType = hashParams.get('type');
   history.replaceState(null, '', window.location.pathname);
-
-  if (hashType === 'recovery') {
-    // Reset de contraseña — Supabase ya estableció sesión temporal
-    showNewPasswordView();
-    return;
-  }
 
   // Restaurar sesión Supabase existente (incluye type=signup tras confirmar email)
   const { data: { session: sbSess } } = await sb.auth.getSession();
