@@ -263,7 +263,8 @@ tbody tr {
 }
 
 tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: var(--color-surface-low); }
+/* hover solo en tablas de la app, nunca dentro de FullCalendar */
+.table-wrap tbody tr:hover { background: var(--color-surface-low); }
 
 tbody td {
   padding: 12px 16px;

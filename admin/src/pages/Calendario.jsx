@@ -15,7 +15,8 @@ export default function Calendario() {
   const calendarRef = useRef(null)
   const [events, setEvents] = useState([])
   const [mostrarCanceladas, setMostrarCanceladas] = useState(false)
-  const [businessHours, setBusinessHours] = useState([])
+  // null = cargando (no renderizar FC hasta tener datos reales)
+  const [businessHours, setBusinessHours] = useState(null)
 
   useEffect(() => {
     supabase.from('horarios').select('dia_semana, hora_inicio, hora_fin, activo')
@@ -79,7 +80,9 @@ export default function Calendario() {
       </div>
 
       <div style={{ background: '#fff', border: '1px solid var(--color-outline)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
-        <FullCalendar
+        {businessHours === null
+          ? <p style={{ color: 'var(--color-on-surface-var)', padding: 8 }}>Cargando calendario...</p>
+          : <FullCalendar
           ref={calendarRef}
           plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
           initialView="timeGridWeek"
@@ -104,7 +107,7 @@ export default function Calendario() {
             alert(`${event.title}\nEstado: ${estado}`)
           }}
           nowIndicator={true}
-        />
+        />}
       </div>
     </div>
   )
