@@ -20,7 +20,8 @@ export default function Calendario() {
 
   useEffect(() => {
     supabase.from('horarios').select('dia_semana, hora_inicio, hora_fin, activo')
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) { setBusinessHours([]); return }
         const hours = (data ?? [])
           .filter(h => h.activo !== false)
           .map(h => ({
@@ -30,6 +31,7 @@ export default function Calendario() {
           }))
         setBusinessHours(hours)
       })
+      .catch(() => setBusinessHours([]))
   }, [])
 
   async function loadEvents(conCanceladas = false) {
