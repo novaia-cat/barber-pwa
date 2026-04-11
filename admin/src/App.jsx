@@ -7,6 +7,7 @@ import Calendario from './pages/Calendario'
 import Citas from './pages/Citas'
 import Clientes from './pages/Clientes'
 import Servicios from './pages/Servicios'
+import Equipo from './pages/Equipo'
 
 function ProtectedLayout({ user }) {
   if (!user) return <Navigate to="/login" replace />
@@ -19,6 +20,7 @@ function ProtectedLayout({ user }) {
           <Route path="/citas" element={<Citas />} />
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/servicios" element={<Servicios />} />
+          <Route path="/equipo" element={<Equipo />} />
           <Route path="*" element={<Navigate to="/calendario" replace />} />
         </Routes>
       </main>
