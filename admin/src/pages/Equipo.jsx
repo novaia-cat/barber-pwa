@@ -198,14 +198,6 @@ export default function Equipo() {
                 placeholder="https://..."
               />
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={form.activo}
-                onChange={e => setForm(f => ({ ...f, activo: e.target.checked }))}
-              />
-              <span className="form-label" style={{ margin: 0 }}>Activo</span>
-            </label>
           </div>
         </Modal>
       )}
