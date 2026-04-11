@@ -110,6 +110,9 @@ export default function Sidebar({ user }) {
         <button className="nav-item" onClick={handleLogout} style={{ color: 'var(--color-error)' }}>
           <IconLogout /> Cerrar sesión
         </button>
+        <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-on-surface-var)', opacity: 0.5, paddingTop: 8 }}>
+          v1.4
+        </div>
       </div>
     </aside>
   )
