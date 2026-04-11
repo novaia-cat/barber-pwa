@@ -13,9 +13,11 @@ const SUPABASE_URL      = 'https://cynnuucihcniqusomgol.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5bm51dWNpaGNuaXF1c29tZ29sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MzQ5MTIsImV4cCI6MjA5MTQxMDkxMn0.xwH3ZDjcmtTwyrJZ5lyoyr8nsHKb8gWPEscJQaAJNmo';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ── Auth state listener (Supabase v2 PKCE) ────────────────────────
+// ── Auth state listener (Supabase v2 — PKCE e implicit flow) ─────
+let recoveryHandled = false;
 sb.auth.onAuthStateChange((event, _session) => {
   if (event === 'PASSWORD_RECOVERY') {
+    recoveryHandled = true;
     showNewPasswordView();
   }
 });
@@ -1264,20 +1266,25 @@ if ('serviceWorker' in navigator && !isLocalhost) {
   viewLoading.classList.add('hidden');
   setTimeout(() => { viewLoading.style.display = 'none'; }, 320);
 
-  // Supabase v2 PKCE: si hay ?code en la URL, onAuthStateChange gestiona el redirect
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has('code')) {
-    history.replaceState(null, '', window.location.pathname);
-    return; // PASSWORD_RECOVERY (u otro evento) disparará onAuthStateChange
-  }
-
-  // Detectar redirects legacy en el hash (signup confirmation)
+  // Detectar redirects en hash (implicit flow) o query param (PKCE)
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
   const hashType = hashParams.get('type');
+  const urlParams = new URLSearchParams(window.location.search);
   history.replaceState(null, '', window.location.pathname);
+
+  // Implicit flow recovery: hash contiene type=recovery
+  if (hashType === 'recovery') {
+    recoveryHandled = true;
+    showNewPasswordView();
+    return;
+  }
 
   // Restaurar sesión Supabase existente (incluye type=signup tras confirmar email)
   const { data: { session: sbSess } } = await sb.auth.getSession();
+
+  // Si onAuthStateChange ya gestionó PASSWORD_RECOVERY, no navegar
+  if (recoveryHandled) return;
+
   if (sbSess) {
     const meta = sbSess.user?.user_metadata || {};
     session = { nombre: meta.nombre || '', apellido: meta.apellido || '', telefono: meta.telefono || '', email: sbSess.user.email };
