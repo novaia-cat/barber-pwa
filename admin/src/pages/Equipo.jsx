@@ -147,17 +147,15 @@ export default function Equipo() {
                 </td>
                 <td style={{ fontWeight: 500 }}>{p.nombre}</td>
                 <td>
-                  <button
-                    onClick={() => toggleActivo(p)}
-                    style={{
-                      border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-full)',
-                      padding: '3px 12px', fontSize: 12, fontWeight: 600, fontFamily: 'var(--font)',
-                      background: p.activo ? '#e8f5ee' : 'var(--color-surface-high)',
-                      color: p.activo ? 'var(--color-badge-green)' : 'var(--color-badge-grey)',
-                    }}
-                  >
-                    {p.activo ? 'Activo' : 'Inactivo'}
-                  </button>
+                  <div className="toggle-wrap">
+                    <span className={`toggle-label${p.activo ? ' on' : ''}`}>
+                      {p.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                    <label className="toggle-switch">
+                      <input type="checkbox" checked={p.activo} onChange={() => toggleActivo(p)} />
+                      <span className="toggle-slider" />
+                    </label>
+                  </div>
                 </td>
                 <td>
                   <div className="actions">

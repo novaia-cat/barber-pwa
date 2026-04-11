@@ -139,18 +139,15 @@ export default function Servicios() {
                 <td className="td-muted">{s.duracion_min} min</td>
                 <td className="td-muted">{Number(s.precio_eur).toFixed(2)} €</td>
                 <td>
-                  <button
-                    onClick={() => toggleActivo(s)}
-                    style={{
-                      border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-full)',
-                      padding: '3px 12px', fontSize: 12, fontWeight: 600, fontFamily: 'var(--font)',
-                      background: s.activo ? '#e8f5ee' : 'var(--color-surface-high)',
-                      color: s.activo ? 'var(--color-badge-green)' : 'var(--color-badge-grey)',
-                    }}
-                    title="Clic para cambiar estado"
-                  >
-                    {s.activo ? 'Activo' : 'Inactivo'}
-                  </button>
+                  <div className="toggle-wrap">
+                    <span className={`toggle-label${s.activo ? ' on' : ''}`}>
+                      {s.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                    <label className="toggle-switch">
+                      <input type="checkbox" checked={s.activo} onChange={() => toggleActivo(s)} />
+                      <span className="toggle-slider" />
+                    </label>
+                  </div>
                 </td>
                 <td>
                   <div className="actions">
