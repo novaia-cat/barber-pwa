@@ -5,10 +5,31 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import { supabase } from '../lib/supabase'
 
+// dia_semana en BD: 1=Lunes ... 7=Domingo
+// FullCalendar daysOfWeek: 0=Domingo, 1=Lunes ... 6=Sábado
+function toFCDay(diaSemana) {
+  return diaSemana === 7 ? 0 : diaSemana
+}
+
 export default function Calendario() {
   const calendarRef = useRef(null)
   const [events, setEvents] = useState([])
   const [mostrarCanceladas, setMostrarCanceladas] = useState(false)
+  const [businessHours, setBusinessHours] = useState([])
+
+  useEffect(() => {
+    supabase.from('horarios').select('dia_semana, hora_inicio, hora_fin, activo')
+      .then(({ data }) => {
+        const hours = (data ?? [])
+          .filter(h => h.activo !== false)
+          .map(h => ({
+            daysOfWeek: [toFCDay(h.dia_semana)],
+            startTime: h.hora_inicio.slice(0, 5),
+            endTime: h.hora_fin.slice(0, 5),
+          }))
+        setBusinessHours(hours)
+      })
+  }, [])
 
   async function loadEvents(conCanceladas = false) {
     let query = supabase.from('citas').select('id, cliente_id, servicio_id, fecha_hora, duracion_min, estado')
@@ -76,6 +97,7 @@ export default function Calendario() {
           hiddenDays={[0]} // ocultar domingo
           slotDuration="00:30:00"
           height="auto"
+          businessHours={businessHours}
           events={events}
           eventClick={({ event }) => {
             const estado = event.extendedProps.estado
