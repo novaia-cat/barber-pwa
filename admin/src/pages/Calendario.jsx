@@ -67,7 +67,10 @@ export default function Calendario() {
     const servicioMap = Object.fromEntries((servicios ?? []).map(s => [s.id, s.nombre]))
 
     const mapped = (citas ?? []).map(c => {
-      const start = new Date(c.fecha_hora)
+      // fecha_hora se almacena con +00:00 pero el valor es hora Madrid (no UTC).
+      // Quitamos el offset para que JS lo interprete como hora local y no sume +2h.
+      const localStr = (c.fecha_hora || '').replace(/([+-]\d{2}:\d{2}|Z)$/, '')
+      const start = new Date(localStr)
       const end = new Date(start.getTime() + c.duracion_min * 60000)
       const cancelada = c.estado === 'cancelada'
       return {
