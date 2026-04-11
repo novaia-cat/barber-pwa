@@ -19,19 +19,38 @@ export default function Calendario() {
   const [businessHours, setBusinessHours] = useState(null)
 
   useEffect(() => {
-    supabase.from('horarios').select('dia_semana, hora_inicio, hora_fin, activo')
-      .then(({ data, error }) => {
+    async function loadBusinessHours() {
+      try {
+        // Solo peluqueros activos de esta barbería
+        const { data: peluqueros } = await supabase
+          .from('peluqueros')
+          .select('id')
+          .eq('barberia_id', 'barber')
+          .eq('activo', true)
+
+        const ids = (peluqueros ?? []).map(p => p.id)
+        if (ids.length === 0) { setBusinessHours([]); return }
+
+        // Horarios de esos peluqueros activos
+        const { data, error } = await supabase
+          .from('horarios')
+          .select('dia_semana, hora_inicio, hora_fin')
+          .in('peluquero_id', ids)
+          .eq('activo', true)
+
         if (error) { setBusinessHours([]); return }
-        const hours = (data ?? [])
-          .filter(h => h.activo !== false)
-          .map(h => ({
-            daysOfWeek: [toFCDay(h.dia_semana)],
-            startTime: h.hora_inicio.slice(0, 5),
-            endTime: h.hora_fin.slice(0, 5),
-          }))
+
+        const hours = (data ?? []).map(h => ({
+          daysOfWeek: [toFCDay(h.dia_semana)],
+          startTime: h.hora_inicio.slice(0, 5),
+          endTime: h.hora_fin.slice(0, 5),
+        }))
         setBusinessHours(hours)
-      })
-      .catch(() => setBusinessHours([]))
+      } catch {
+        setBusinessHours([])
+      }
+    }
+    loadBusinessHours()
   }, [])
 
   async function loadEvents(conCanceladas = false) {
