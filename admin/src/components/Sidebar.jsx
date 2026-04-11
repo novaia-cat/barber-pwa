@@ -26,6 +26,12 @@ const IconServicios = () => (
   </svg>
 )
 
+const IconHorario = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+  </svg>
+)
+
 const IconEquipo = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
@@ -88,6 +94,9 @@ export default function Sidebar({ user }) {
         </NavLink>
         <NavLink to="/equipo" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
           <IconEquipo /> Equipo
+        </NavLink>
+        <NavLink to="/horario" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+          <IconHorario /> Horario
         </NavLink>
       </nav>
 

@@ -392,6 +392,14 @@ tbody td {
   border-radius: var(--radius-md);
 }
 
+.success-msg {
+  font-size: 13px;
+  color: var(--color-badge-green);
+  background: #e8f5ee;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+}
+
 /* ── Action icons ────────────────────────────────────────────── */
 .actions {
   display: flex;
