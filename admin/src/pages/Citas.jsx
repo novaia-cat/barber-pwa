@@ -17,7 +17,10 @@ const IconDelete = () => (
 
 function formatFecha(iso) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleString('es-ES', {
+  // fecha_hora se almacena con +00:00 pero el valor es hora Madrid (no UTC).
+  // Quitamos el offset para que JS lo interprete como hora local sin convertir.
+  const localStr = iso.replace(/([+-]\d{2}:\d{2}|Z)$/, '')
+  return new Date(localStr).toLocaleString('es-ES', {
     day: '2-digit', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit'
   })
@@ -86,7 +89,7 @@ export default function Citas() {
   const filtered = filtroEstado === 'todas' ? citas : citas.filter(c => c.estado === filtroEstado)
 
   function openEdit(c) {
-    const fechaLocal = c.fecha_hora ? new Date(c.fecha_hora).toISOString().slice(0, 16) : ''
+    const fechaLocal = c.fecha_hora ? c.fecha_hora.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16) : ''
     setForm({ cliente_id: c.cliente_id, servicio_id: c.servicio_id, fecha_hora: fechaLocal, duracion_min: c.duracion_min, estado: c.estado })
     setEditId(c.id)
     setError('')
@@ -108,7 +111,7 @@ export default function Citas() {
     const payload = {
       cliente_id: form.cliente_id,
       servicio_id: form.servicio_id,
-      fecha_hora: new Date(form.fecha_hora).toISOString(),
+      fecha_hora: form.fecha_hora + ':00+00:00',
       duracion_min: Number(form.duracion_min),
       estado: form.estado,
     }
