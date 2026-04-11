@@ -573,3 +573,8 @@ tbody td {
   color: var(--color-on-surface-var) !important;
   text-decoration: none !important;
 }
+
+/* Días/horas fuera del horario laboral */
+.fc .fc-non-business {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
