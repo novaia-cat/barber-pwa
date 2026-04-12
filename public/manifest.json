@@ -1,12 +1,12 @@
 {
-  "name": "Barber Chat",
-  "short_name": "BarberChat",
-  "description": "Reserva tu cita en la barberia",
+  "name": "NovaCut",
+  "short_name": "NovaCut",
+  "description": "Reserva tu cita en la barbería",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1a1a2e",
-  "theme_color": "#1a1a2e",
+  "background_color": "#725b3f",
+  "theme_color": "#fbf9f8",
   "icons": [
     {
       "src": "/icons/icon-192.png",
