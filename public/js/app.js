@@ -151,7 +151,7 @@ function showHomeView() {
   viewHome.style.display = 'flex';
   appHeader.style.display = 'flex';
   bottomNav.style.display = 'flex';
-  setNavActive('services');
+  setNavActive('home');
 }
 
 function showSlotsView(title) {
@@ -164,7 +164,7 @@ function showSlotsView(title) {
 
 function setNavActive(tab) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('nav-tab--active'));
-  const map = { services: 'nav-services', bookings: 'mis-citas-btn', profile: 'nav-profile' };
+  const map = { home: 'nav-home', services: 'nav-services', bookings: 'mis-citas-btn', profile: 'nav-profile' };
   const el = document.getElementById(map[tab]);
   if (el) el.classList.add('nav-tab--active');
 }
@@ -484,10 +484,14 @@ function renderServiceCards() {
   });
 }
 
-// ── Home CTA ──────────────────────────────────────────────────────
+// ── Home CTA + nav ────────────────────────────────────────────────
 document.getElementById('home-cta-btn').addEventListener('click', () => {
   renderServiceCards();
   showLandingView();
+});
+
+document.getElementById('nav-home').addEventListener('click', () => {
+  showHomeView();
 });
 
 // ── Bottom nav ────────────────────────────────────────────────────
