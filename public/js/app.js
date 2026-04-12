@@ -265,24 +265,61 @@ rgpdCloseBtn.addEventListener('click', () => { rgpdModal.classList.remove('activ
 
 // ── PWA Install ───────────────────────────────────────────────────
 let deferredInstallPrompt = null;
+const homeInstallBtn = document.getElementById('home-install-btn');
+const installModal   = document.getElementById('install-modal');
+const installModalSteps = document.getElementById('install-modal-steps');
+
+// No mostrar nada si ya está instalada (modo standalone)
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                  || window.navigator.standalone === true;
+
+function getInstallInstructions() {
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/.test(ua)) {
+    return 'En Safari, toca el botón compartir (□↑)\ny selecciona "Añadir a pantalla de inicio".';
+  }
+  if (/EdgA|EdgW/.test(ua)) {
+    return 'Toca el menú ··· (abajo a la derecha)\ny selecciona "Añadir a pantalla de inicio".';
+  }
+  // Chrome Android y resto
+  return 'Toca el menú ⋮ (arriba a la derecha)\ny selecciona "Añadir a pantalla de inicio".';
+}
+
+function showHomeInstallBtn() {
+  if (!isStandalone && homeInstallBtn) homeInstallBtn.style.display = 'flex';
+}
 
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredInstallPrompt = e;
-  installBtn.style.display = 'flex';
+  showHomeInstallBtn();
 });
 
-installBtn.addEventListener('click', async () => {
-  if (!deferredInstallPrompt) return;
-  deferredInstallPrompt.prompt();
-  await deferredInstallPrompt.userChoice;
-  deferredInstallPrompt = null;
-  installBtn.style.display = 'none';
+// Si no llega beforeinstallprompt en 2s y no está instalada, mostrar botón manual
+setTimeout(() => {
+  if (!deferredInstallPrompt && !isStandalone) showHomeInstallBtn();
+}, 2000);
+
+homeInstallBtn.addEventListener('click', async () => {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if (outcome === 'accepted') homeInstallBtn.style.display = 'none';
+  } else {
+    // Mostrar instrucciones manuales
+    installModalSteps.textContent = getInstallInstructions();
+    installModal.classList.add('active');
+  }
+});
+
+document.getElementById('install-modal-close').addEventListener('click', () => {
+  installModal.classList.remove('active');
 });
 
 window.addEventListener('appinstalled', () => {
-  installBtn.style.display = 'none';
   deferredInstallPrompt = null;
+  if (homeInstallBtn) homeInstallBtn.style.display = 'none';
 });
 
 // ── Header menu ───────────────────────────────────────────────────

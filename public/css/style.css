@@ -2222,6 +2222,59 @@ body {
   font-size: 1.2rem;
 }
 
+.home-install-btn {
+  width: 100%;
+  max-width: 340px;
+  padding: 12px 20px;
+  background: transparent;
+  color: var(--color-on-surface-var);
+  border: 1.5px solid var(--color-outline);
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 10px;
+  transition: border-color 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.home-install-btn:active {
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+}
+
+.home-install-btn .material-symbols-outlined { font-size: 1.1rem; }
+
+/* Install instructions modal */
+.install-modal-box {
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.install-modal-icon .material-symbols-outlined {
+  font-size: 2.4rem;
+  color: var(--color-secondary);
+}
+
+.install-modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+}
+
+.install-modal-steps {
+  font-size: 0.9rem;
+  color: var(--color-on-surface-var);
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
 /* ── Auth — Barbería brand ───────────────────────────────────────── */
 .auth-barber-brand {
   display: flex;
