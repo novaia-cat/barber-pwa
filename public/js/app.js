@@ -428,6 +428,10 @@ function applyConfig(cfg) {
     if (txt) txt.textContent = cfg.telefono;
   }
 
+  // ── Auth hero (Login) — nombre barbería ─────────────────────────
+  const loginBarberName = document.getElementById('login-barber-name');
+  if (loginBarberName && cfg.nombre) loginBarberName.textContent = cfg.nombre;
+
   // ── Auth hero (Login) — imagen + logo ───────────────────────────
   if (cfg.imagen_url) {
     document.querySelectorAll('.auth-hero-img').forEach(img => {

@@ -1797,6 +1797,15 @@ body {
   text-transform: uppercase;
 }
 
+.auth-barber-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-secondary);
+  margin: 0;
+}
+
 .auth-title {
   font-size: 1.9rem;
   font-weight: 700;
