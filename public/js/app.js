@@ -105,15 +105,11 @@ function hideAllViews() {
 function showForgotPasswordView() {
   hideAllViews();
   viewForgotPassword.classList.add('active');
-  appHeader.style.display = 'flex';
-  requestAnimationFrame(updateHeaderHeight);
 }
 
 function showNewPasswordView() {
   hideAllViews();
   viewNewPassword.classList.add('active');
-  appHeader.style.display = 'flex';
-  requestAnimationFrame(updateHeaderHeight);
 }
 
 function closeProfilePanel() {
@@ -126,15 +122,11 @@ function closeProfilePanel() {
 function showLoginView() {
   hideAllViews();
   viewLogin.classList.add('active');
-  appHeader.style.display = 'flex';
-  requestAnimationFrame(updateHeaderHeight);
 }
 
 function showRegisterView() {
   hideAllViews();
   viewRegister.classList.add('active');
-  appHeader.style.display = 'flex';
-  requestAnimationFrame(updateHeaderHeight);
 }
 
 function showLandingView() {
@@ -399,17 +391,28 @@ function applyConfig(cfg) {
     if (txt) txt.textContent = cfg.telefono;
   }
 
-  // ── Auth brand (logo + nombre en todas las vistas auth) ─────────
-  document.querySelectorAll('.auth-barber-logo').forEach(img => {
-    if (cfg.logo_url) {
+  // ── Auth hero (Login) — imagen + logo ───────────────────────────
+  if (cfg.imagen_url) {
+    document.querySelectorAll('.auth-hero-img').forEach(img => {
+      img.onload  = () => { img.style.display = 'block'; };
+      img.onerror = () => {};
+      img.src = cfg.imagen_url;
+    });
+  }
+  if (cfg.logo_url) {
+    document.querySelectorAll('.auth-hero-logo').forEach(img => {
+      img.onload  = () => {
+        img.style.display = 'block';
+        const placeholder = img.previousElementSibling;
+        if (placeholder && placeholder.classList.contains('auth-hero-logo-placeholder')) {
+          placeholder.style.display = 'none';
+        }
+      };
+      img.onerror = () => {};
       img.src = cfg.logo_url;
       img.alt = cfg.nombre || '';
-      img.style.display = 'block';
-    }
-  });
-  document.querySelectorAll('.auth-barber-name-el').forEach(el => {
-    if (cfg.nombre) el.textContent = cfg.nombre;
-  });
+    });
+  }
 }
 
 // ── Service cards (landing) ───────────────────────────────────────
