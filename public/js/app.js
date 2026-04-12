@@ -55,6 +55,7 @@ const aboutBtn      = document.getElementById('about-btn');
 const aboutModal    = document.getElementById('about-modal');
 const aboutCloseBtn = document.getElementById('about-close-btn');
 const viewLoading      = document.getElementById('view-loading');
+const viewHome         = document.getElementById('view-home');
 const viewLogin        = document.getElementById('view-login');
 const viewRegister     = document.getElementById('view-register');
 const viewLanding      = document.getElementById('view-landing');
@@ -89,6 +90,7 @@ function hideAllViews() {
   viewRegister.classList.remove('active');
   viewForgotPassword.classList.remove('active');
   viewNewPassword.classList.remove('active');
+  viewHome.style.display = 'none';
   viewLanding.style.display = 'none';
   viewSlots.classList.remove('active');
   viewSummary.classList.remove('active');
@@ -142,6 +144,14 @@ function showLandingView() {
   bottomNav.style.display = 'flex';
   setNavActive('services');
   booking = null;
+}
+
+function showHomeView() {
+  hideAllViews();
+  viewHome.style.display = 'flex';
+  appHeader.style.display = 'flex';
+  bottomNav.style.display = 'flex';
+  setNavActive('services');
 }
 
 function showSlotsView(title) {
@@ -354,6 +364,52 @@ function applyConfig(cfg) {
   if (cfg.novaia_badge) novaiaBadge.style.display = 'block';
   const themeColor = document.querySelector('meta[name=theme-color]');
   if (themeColor && cfg.color_primary) themeColor.content = cfg.color_primary;
+
+  // ── Home view ──────────────────────────────────────────────────
+  const homeBarberName = document.getElementById('home-barber-name');
+  if (homeBarberName && cfg.nombre) homeBarberName.textContent = cfg.nombre;
+
+  if (cfg.logo_url) {
+    const homeLogo = document.getElementById('home-logo');
+    const homeLogoPlaceholder = document.getElementById('home-logo-placeholder');
+    if (homeLogo) {
+      homeLogo.onload  = () => { homeLogo.style.display = 'block'; if (homeLogoPlaceholder) homeLogoPlaceholder.style.display = 'none'; };
+      homeLogo.onerror = () => {};
+      homeLogo.src = cfg.logo_url;
+    }
+  }
+  if (cfg.imagen_url) {
+    const homeHeroImg = document.getElementById('home-hero-img');
+    if (homeHeroImg) {
+      homeHeroImg.onload  = () => { homeHeroImg.style.display = 'block'; };
+      homeHeroImg.onerror = () => {};
+      homeHeroImg.src = cfg.imagen_url;
+    }
+  }
+  if (cfg.direccion) {
+    const el = document.getElementById('home-direccion');
+    const txt = document.getElementById('home-direccion-text');
+    if (el) el.style.display = 'flex';
+    if (txt) txt.textContent = cfg.direccion;
+  }
+  if (cfg.telefono) {
+    const el = document.getElementById('home-telefono');
+    const txt = document.getElementById('home-telefono-text');
+    if (el) el.style.display = 'flex';
+    if (txt) txt.textContent = cfg.telefono;
+  }
+
+  // ── Auth brand (logo + nombre en todas las vistas auth) ─────────
+  document.querySelectorAll('.auth-barber-logo').forEach(img => {
+    if (cfg.logo_url) {
+      img.src = cfg.logo_url;
+      img.alt = cfg.nombre || '';
+      img.style.display = 'block';
+    }
+  });
+  document.querySelectorAll('.auth-barber-name-el').forEach(el => {
+    if (cfg.nombre) el.textContent = cfg.nombre;
+  });
 }
 
 // ── Service cards (landing) ───────────────────────────────────────
@@ -427,6 +483,12 @@ function renderServiceCards() {
     servicesList.appendChild(card);
   });
 }
+
+// ── Home CTA ──────────────────────────────────────────────────────
+document.getElementById('home-cta-btn').addEventListener('click', () => {
+  renderServiceCards();
+  showLandingView();
+});
 
 // ── Bottom nav ────────────────────────────────────────────────────
 document.getElementById('nav-services').addEventListener('click', () => {
@@ -1018,7 +1080,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     const meta = data.user?.user_metadata || {};
     session = { nombre: meta.nombre || '', apellido: meta.apellido || '', telefono: meta.telefono || '', email };
     renderServiceCards();
-    showLandingView();
+    showHomeView();
   } catch {
     msgEl.textContent = 'Email o contraseña incorrectos.';
     msgEl.classList.add('auth-msg--error');
@@ -1073,7 +1135,7 @@ regBtn.addEventListener('click', async () => {
       // Verificación desactivada en Supabase → sesión activa de inmediato
       session = { nombre, apellido, telefono, email };
       renderServiceCards();
-      showLandingView();
+      showHomeView();
     } else {
       // Verificación activa → mostrar pantalla "revisa tu correo"
       document.querySelector('#view-register .auth-welcome').style.display = 'none';
@@ -1168,7 +1230,7 @@ document.getElementById('new-password-btn').addEventListener('click', async () =
       const meta = sbSess.user?.user_metadata || {};
       session = { nombre: meta.nombre || '', apellido: meta.apellido || '', telefono: meta.telefono || '', email: sbSess.user.email };
       renderServiceCards();
-      showLandingView();
+      showHomeView();
     } else {
       showLoginView();
     }
@@ -1289,7 +1351,7 @@ if ('serviceWorker' in navigator && !isLocalhost) {
     const meta = sbSess.user?.user_metadata || {};
     session = { nombre: meta.nombre || '', apellido: meta.apellido || '', telefono: meta.telefono || '', email: sbSess.user.email };
     renderServiceCards();
-    showLandingView();
+    showHomeView();
   } else {
     if (hashType === 'signup') {
       // Email confirmado pero sesión no activa → ir al login con mensaje
