@@ -997,10 +997,23 @@ function cancelCitaNativa(cita, cardEl) {
   const cancelModal   = document.getElementById('cancel-modal');
   const modalConfirm  = document.getElementById('cancel-modal-confirm');
   const modalDismiss  = document.getElementById('cancel-modal-dismiss');
+  const defaultConfirmText = 'Cancelar cita';
 
+  const resetModalState = () => {
+    modalConfirm.textContent = defaultConfirmText;
+    modalConfirm.disabled = false;
+    modalConfirm.onclick = null;
+    modalDismiss.onclick = null;
+    cancelModal.onclick = null;
+  };
+
+  const cleanup = () => {
+    cancelModal.style.display = 'none';
+    resetModalState();
+  };
+
+  resetModalState();
   cancelModal.style.display = 'flex';
-
-  const cleanup = () => { cancelModal.style.display = 'none'; };
 
   modalDismiss.onclick = cleanup;
   cancelModal.onclick  = e => { if (e.target === cancelModal) cleanup(); };
@@ -1011,7 +1024,7 @@ function cancelCitaNativa(cita, cardEl) {
     modalConfirm.disabled = true;
 
     try {
-      await fetch(WEBHOOK_CHAT, {
+      const res = await fetch(WEBHOOK_CHAT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1024,6 +1037,7 @@ function cancelCitaNativa(cita, cardEl) {
           mensaje:   ''
         })
       });
+      if (!res.ok) throw new Error('cancel error');
 
       cleanup();
 
@@ -1040,8 +1054,6 @@ function cancelCitaNativa(cita, cardEl) {
       };
       showConfirmationView('cancel', volverACitas, details);
     } catch {
-      modalConfirm.textContent = 'Aceptar';
-      modalConfirm.disabled = false;
       cleanup();
       showToast('Error al cancelar. Intentalo de nuevo.');
     }
