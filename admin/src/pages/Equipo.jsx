@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useBarberia } from '../lib/BarberiaContext'
 
 const IconEdit = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -37,6 +38,7 @@ function Modal({ title, onClose, onSave, saving, children }) {
 const EMPTY = { nombre: '', foto_url: '', activo: true }
 
 export default function Equipo() {
+  const { barberiaId } = useBarberia()
   const [peluqueros, setPeluqueros] = useState([])
   const [loading, setLoading]       = useState(true)
   const [modal, setModal]           = useState(null)
@@ -50,13 +52,13 @@ export default function Equipo() {
     const { data } = await supabase
       .from('peluqueros')
       .select('id, nombre, foto_url, activo')
-      .eq('barberia_id', 'barber')
+      .eq('barberia_id', barberiaId)
       .order('nombre')
     setPeluqueros(data ?? [])
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { if (barberiaId) load() }, [barberiaId])
 
   function openNew() {
     setForm(EMPTY)
@@ -86,7 +88,7 @@ export default function Equipo() {
     if (modal === 'new') {
       const { error: err } = await supabase
         .from('peluqueros')
-        .insert([{ ...payload, barberia_id: 'barber' }])
+        .insert([{ ...payload, barberia_id: barberiaId }])
       if (err) setError(err.message)
       else { setModal(null); load() }
     } else {

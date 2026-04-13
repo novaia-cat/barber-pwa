@@ -4,6 +4,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import { supabase } from '../lib/supabase'
+import { useBarberia } from '../lib/BarberiaContext'
 
 // dia_semana en BD: 1=Lunes ... 7=Domingo
 // FullCalendar daysOfWeek: 0=Domingo, 1=Lunes ... 6=Sábado
@@ -17,15 +18,17 @@ export default function Calendario() {
   const [mostrarCanceladas, setMostrarCanceladas] = useState(false)
   // null = cargando (no renderizar FC hasta tener datos reales)
   const [businessHours, setBusinessHours] = useState(null)
+  const { barberiaId } = useBarberia()
 
   useEffect(() => {
+    if (!barberiaId) return
     async function loadBusinessHours() {
       try {
         // Solo peluqueros activos de esta barbería
         const { data: peluqueros } = await supabase
           .from('peluqueros')
           .select('id')
-          .eq('barberia_id', 'barber')
+          .eq('barberia_id', barberiaId)
           .eq('activo', true)
 
         const ids = (peluqueros ?? []).map(p => p.id)
@@ -51,10 +54,10 @@ export default function Calendario() {
       }
     }
     loadBusinessHours()
-  }, [])
+  }, [barberiaId])
 
   async function loadEvents(conCanceladas = false) {
-    let query = supabase.from('citas').select('id, cliente_id, servicio_id, fecha_hora, duracion_min, estado')
+    let query = supabase.from('citas').select('id, cliente_id, servicio_id, fecha_hora, duracion_min, estado').eq('barberia_id', barberiaId)
     if (!conCanceladas) query = query.neq('estado', 'cancelada')
 
     const [{ data: citas }, { data: clientes }, { data: servicios }] = await Promise.all([
@@ -87,7 +90,7 @@ export default function Calendario() {
     setEvents(mapped)
   }
 
-  useEffect(() => { loadEvents(mostrarCanceladas) }, [mostrarCanceladas])
+  useEffect(() => { if (barberiaId) loadEvents(mostrarCanceladas) }, [mostrarCanceladas, barberiaId])
 
   return (
     <div>

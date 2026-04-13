@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useBarberia } from '../lib/BarberiaContext'
 
 const DIAS = [
   { key: 1, label: 'Lunes' },
@@ -86,16 +87,17 @@ export default function Horario() {
   const [loading, setLoading]         = useState(false)
   const [saving, setSaving]           = useState(false)
   const [msg, setMsg]                 = useState(null) // { type: 'ok'|'err', text }
+  const { barberiaId }                = useBarberia()
 
   // Cargar lista de peluqueros
   useEffect(() => {
-    supabase.from('peluqueros').select('id, nombre').eq('barberia_id', 'barber').eq('activo', true).order('nombre')
+    supabase.from('peluqueros').select('id, nombre').eq('barberia_id', barberiaId).eq('activo', true).order('nombre')
       .then(({ data }) => {
         const list = data ?? []
         setPeluqueros(list)
         if (list.length > 0) setPeluqueroId(list[0].id)
       })
-  }, [])
+  }, [barberiaId])
 
   // Cargar horarios cuando cambia el peluquero
   useEffect(() => {

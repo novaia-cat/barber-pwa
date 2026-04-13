@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useBarberia } from '../lib/BarberiaContext'
 
 const IconEdit = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -50,6 +51,7 @@ function Modal({ title, onClose, onSave, saving, children }) {
 }
 
 export default function Citas() {
+  const { barberiaId } = useBarberia()
   const [citas, setCitas] = useState([])
   const [clientes, setClientes] = useState([])
   const [servicios, setServicios] = useState([])
@@ -64,9 +66,9 @@ export default function Citas() {
   async function load() {
     setLoading(true)
     const [{ data: c }, { data: cl }, { data: sv }] = await Promise.all([
-      supabase.from('citas').select('id, cliente_id, servicio_id, fecha_hora, duracion_min, estado').order('fecha_hora', { ascending: false }),
-      supabase.from('clientes').select('id, nombre, apellido'),
-      supabase.from('servicios').select('id, nombre'),
+      supabase.from('citas').select('id, cliente_id, servicio_id, fecha_hora, duracion_min, estado').eq('barberia_id', barberiaId).order('fecha_hora', { ascending: false }),
+      supabase.from('clientes').select('id, nombre, apellido').eq('barberia_id', barberiaId),
+      supabase.from('servicios').select('id, nombre').eq('barberia_id', barberiaId),
     ])
     setCitas(c ?? [])
     setClientes(cl ?? [])
@@ -74,7 +76,7 @@ export default function Citas() {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { if (barberiaId) load() }, [barberiaId])
 
   function clienteNombre(id) {
     const c = clientes.find(c => c.id === id)
@@ -117,7 +119,7 @@ export default function Citas() {
     }
 
     if (modal === 'new') {
-      const { error: err } = await supabase.from('citas').insert([{ ...payload, barberia_id: 'barber' }])
+      const { error: err } = await supabase.from('citas').insert([{ ...payload, barberia_id: barberiaId }])
       if (err) setError(err.message)
       else { setModal(null); load() }
     } else {

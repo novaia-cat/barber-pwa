@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useBarberia } from '../lib/BarberiaContext'
 
 const IconEdit = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -33,6 +34,7 @@ function Modal({ title, onClose, onSave, saving, children }) {
 const EMPTY = { id: '', nombre: '', duracion_min: 30, precio_eur: 0, activo: true }
 
 export default function Servicios() {
+  const { barberiaId } = useBarberia()
   const [servicios, setServicios] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null)
@@ -46,12 +48,13 @@ export default function Servicios() {
     const { data } = await supabase
       .from('servicios')
       .select('id, nombre, duracion_min, precio_eur, activo')
+      .eq('barberia_id', barberiaId)
       .order('id')
     setServicios(data ?? [])
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { if (barberiaId) load() }, [barberiaId])
 
   function openNew() {
     setForm(EMPTY)
@@ -76,7 +79,7 @@ export default function Servicios() {
     if (modal === 'new') {
       const { error: err } = await supabase.from('servicios').insert([{
         id: form.id.trim().toUpperCase(),
-        barberia_id: 'barber',
+        barberia_id: barberiaId,
         nombre: form.nombre.trim(),
         duracion_min: Number(form.duracion_min),
         precio_eur: Number(form.precio_eur),

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { supabase } from './lib/supabase'
+import { BarberiaProvider, useBarberia } from './lib/BarberiaContext'
 import Sidebar from './components/Sidebar'
 import Login from './pages/Login'
 import Calendario from './pages/Calendario'
@@ -9,9 +10,23 @@ import Clientes from './pages/Clientes'
 import Servicios from './pages/Servicios'
 import Equipo from './pages/Equipo'
 import Horario from './pages/Horario'
+import Ajustes from './pages/Ajustes'
 
-function ProtectedLayout({ user }) {
-  if (!user) return <Navigate to="/login" replace />
+function ProtectedContent({ user }) {
+  const { barberiaId, loading } = useBarberia()
+
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--color-on-surface-var)' }}>
+      Cargando...
+    </div>
+  )
+
+  if (!barberiaId) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--color-error)' }}>
+      Este usuario no tiene acceso a ninguna barbería.
+    </div>
+  )
+
   return (
     <div className="admin-layout">
       <Sidebar user={user} />
@@ -23,6 +38,7 @@ function ProtectedLayout({ user }) {
           <Route path="/servicios" element={<Servicios />} />
           <Route path="/equipo" element={<Equipo />} />
           <Route path="/horario" element={<Horario />} />
+          <Route path="/ajustes" element={<Ajustes />} />
           <Route path="*" element={<Navigate to="/calendario" replace />} />
         </Routes>
       </main>
@@ -30,8 +46,17 @@ function ProtectedLayout({ user }) {
   )
 }
 
+function ProtectedLayout({ user }) {
+  if (!user) return <Navigate to="/login" replace />
+  return (
+    <BarberiaProvider user={user}>
+      <ProtectedContent user={user} />
+    </BarberiaProvider>
+  )
+}
+
 export default function App() {
-  const [user, setUser] = useState(undefined) // undefined = cargando
+  const [user, setUser] = useState(undefined)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -43,7 +68,7 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  if (user === undefined) return null // splash mínimo mientras carga sesión
+  if (user === undefined) return null
 
   return (
     <BrowserRouter>
