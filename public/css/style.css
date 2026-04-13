@@ -2311,3 +2311,7 @@ body {
   text-transform: uppercase;
   color: var(--color-on-surface);
 }
+
+.citas-empty .home-cta-btn {
+  margin: 20px auto 0;
+}

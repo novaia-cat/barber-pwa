@@ -908,12 +908,28 @@ async function fetchAndRenderCitas() {
     if (citas.length) {
       renderCitaCards(citas);
     } else {
-      citasContainer.innerHTML = '<div class="citas-empty">No tienes citas proximas.<br>Reserva cuando quieras.</div>';
+      renderEmptyCitasState();
     }
   } catch {
     citasLoading.style.display = 'none';
     citasContainer.innerHTML = '<div class="citas-empty">Error de conexion. Intentalo de nuevo.</div>';
   }
+}
+
+function renderEmptyCitasState() {
+  citasContainer.innerHTML = '';
+
+  const emptyState = document.createElement('div');
+  emptyState.className = 'citas-empty';
+  emptyState.innerHTML = 'No tienes citas proximas.<br>Reserva cuando quieras.';
+
+  const bookBtn = document.createElement('button');
+  bookBtn.className = 'home-cta-btn';
+  bookBtn.innerHTML = 'Reservar cita <span class="material-symbols-outlined">calendar_month</span>';
+  bookBtn.addEventListener('click', showLandingView);
+
+  emptyState.appendChild(bookBtn);
+  citasContainer.appendChild(emptyState);
 }
 
 function parseCitaDisplay(display) {
