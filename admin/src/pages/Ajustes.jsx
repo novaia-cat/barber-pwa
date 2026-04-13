@@ -26,22 +26,21 @@ export default function Ajustes() {
     }
     setSavingBarberia(true)
     setMsgBarberia(null)
-    const { data, error } = await supabase
+    const updates = {
+      nombre:     form.nombre.trim(),
+      direccion:  form.direccion.trim()  || null,
+      telefono:   form.telefono.trim()   || null,
+      logo_url:   form.logo_url.trim()   || null,
+      imagen_url: form.imagen_url.trim() || null,
+    }
+    const { error } = await supabase
       .from('barberias')
-      .update({
-        nombre:     form.nombre.trim(),
-        direccion:  form.direccion.trim()  || null,
-        telefono:   form.telefono.trim()   || null,
-        logo_url:   form.logo_url.trim()   || null,
-        imagen_url: form.imagen_url.trim() || null,
-      })
+      .update(updates)
       .eq('id', barberiaId)
-      .select()
-      .single()
     if (error) {
       setMsgBarberia({ type: 'err', text: error.message })
     } else {
-      setBarberia(data)
+      setBarberia(prev => ({ ...prev, ...updates }))
       setMsgBarberia({ type: 'ok', text: 'Datos guardados correctamente.' })
     }
     setSavingBarberia(false)
