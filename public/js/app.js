@@ -897,13 +897,16 @@ async function fetchAndRenderCitas() {
         mensaje:   ''
       })
     });
+    if (!res.ok) throw new Error('appointments error');
+
     const raw = await res.json();
-    const data = Array.isArray(raw) ? raw[0] : raw;
+    const data = Array.isArray(raw) ? (raw[0] || {}) : (raw || {});
+    const citas = Array.isArray(data.citas) ? data.citas : [];
     console.log('[mis-citas]', data);
     citasLoading.style.display = 'none';
 
-    if (data.citas && data.citas.length) {
-      renderCitaCards(data.citas);
+    if (citas.length) {
+      renderCitaCards(citas);
     } else {
       citasContainer.innerHTML = '<div class="citas-empty">No tienes citas proximas.<br>Reserva cuando quieras.</div>';
     }
