@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
+const BARBERIA_ID = 'barber'
+
 const IconEdit = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -37,6 +39,10 @@ function Modal({ title, onClose, onSave, saving, children }) {
 
 const EMPTY = { nombre: '', apellido: '', telefono: '', email: '' }
 
+function normalizePhone(value) {
+  return String(value ?? '').replace(/\s+/g, '').trim()
+}
+
 export default function Clientes() {
   const [clientes, setClientes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -52,6 +58,7 @@ export default function Clientes() {
     const { data } = await supabase
       .from('clientes')
       .select('id, nombre, apellido, telefono, email, fecha_registro')
+      .eq('barberia_id', BARBERIA_ID)
       .order('fecha_registro', { ascending: false })
     setClientes(data ?? [])
     setLoading(false)
@@ -85,25 +92,28 @@ export default function Clientes() {
 
   async function handleSave() {
     if (!form.nombre.trim()) { setError('El nombre es obligatorio.'); return }
+    const telefono = normalizePhone(form.telefono)
+    if (!telefono.match(/^\d{9,15}$/)) { setError('El teléfono es obligatorio y debe tener entre 9 y 15 dígitos.'); return }
     setSaving(true)
     setError('')
     if (modal === 'new') {
       const { error: err } = await supabase.from('clientes').insert([{
+        barberia_id: BARBERIA_ID,
         nombre: form.nombre.trim(),
         apellido: form.apellido.trim() || null,
-        telefono: form.telefono.trim() || null,
+        telefono,
         email: form.email.trim() || null,
       }])
-      if (err) setError(err.message)
+      if (err) setError(err.code === '23505' ? 'Ya existe un cliente con ese teléfono en esta barbería.' : err.message)
       else { setModal(null); load() }
     } else {
       const { error: err } = await supabase.from('clientes').update({
         nombre: form.nombre.trim(),
         apellido: form.apellido.trim() || null,
-        telefono: form.telefono.trim() || null,
+        telefono,
         email: form.email.trim() || null,
-      }).eq('id', editId)
-      if (err) setError(err.message)
+      }).eq('id', editId).eq('barberia_id', BARBERIA_ID)
+      if (err) setError(err.code === '23505' ? 'Ya existe un cliente con ese teléfono en esta barbería.' : err.message)
       else { setModal(null); load() }
     }
     setSaving(false)
@@ -111,7 +121,7 @@ export default function Clientes() {
 
   async function handleDelete(id) {
     if (!confirm('¿Borrar este cliente?')) return
-    await supabase.from('clientes').delete().eq('id', id)
+    await supabase.from('clientes').delete().eq('id', id).eq('barberia_id', BARBERIA_ID)
     load()
   }
 
@@ -190,7 +200,7 @@ export default function Clientes() {
             </div>
             <div className="form-group">
               <label className="form-label">Teléfono</label>
-              <input className="input" value={form.telefono} onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))} placeholder="+34 600 000 000" />
+              <input className="input" value={form.telefono} onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))} placeholder="612345678" />
             </div>
             <div className="form-group">
               <label className="form-label">Email</label>
