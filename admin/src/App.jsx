@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { supabase } from './lib/supabase'
 import { BarberiaProvider, useBarberia } from './lib/BarberiaContext'
+import { supabase } from './lib/supabase'
 import Sidebar from './components/Sidebar'
 import Login from './pages/Login'
 import Calendario from './pages/Calendario'
@@ -22,8 +23,9 @@ function ProtectedContent({ user }) {
   )
 
   if (!barberiaId) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--color-error)' }}>
-      Este usuario no tiene acceso a ninguna barbería.
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, height: '100vh' }}>
+      <p style={{ color: 'var(--color-error)' }}>Este usuario no tiene acceso a ninguna barbería.</p>
+      <button className="btn-ghost" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
     </div>
   )
 
