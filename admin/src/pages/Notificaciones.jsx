@@ -56,7 +56,7 @@ export default function Notificaciones() {
     if (!barberiaId) return
     setLoading(true)
     const [{ data: subsData }, { data: logData }] = await Promise.all([
-      supabase.from('push_subscriptions').select('id, endpoint, is_admin, created_at, cliente_id').eq('barberia_id', barberiaId).order('created_at', { ascending: false }),
+      supabase.from('push_subscriptions').select('id, endpoint, p256dh, auth, is_admin, created_at, cliente_id').eq('barberia_id', barberiaId).order('created_at', { ascending: false }),
       supabase.from('notificaciones_log').select('*').eq('barberia_id', barberiaId).order('created_at', { ascending: false }).limit(20)
     ])
     setSubs(subsData ?? [])
