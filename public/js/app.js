@@ -1364,16 +1364,27 @@ async function subscribePush(manual = false) {
       });
     }
 
-    // Registrar en servidor (n8n → Supabase)
-    const res = await fetch(WEBHOOK_PUSH_SUBSCRIBE, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        barber_id:  barberId,
-        telefono:   session.telefono,
-        push_token: JSON.stringify(sub)
-      })
-    });
+    // Buscar cliente_id por auth_user_id
+    const { data: { user } } = await sb.auth.getUser();
+    const { data: cliente } = await sb
+      .from('clientes')
+      .select('id')
+      .eq('auth_user_id', user?.id)
+      .maybeSingle();
+
+    // Guardar suscripción directamente en Supabase
+    const { error: upsertErr } = await sb
+      .from('push_subscriptions')
+      .upsert({
+        barberia_id: barberId,
+        cliente_id:  cliente?.id ?? null,
+        endpoint:    sub.endpoint,
+        p256dh:      sub.keys.p256dh,
+        auth:        sub.keys.auth,
+        is_admin:    false
+      }, { onConflict: 'endpoint' });
+
+    if (upsertErr) throw new Error(upsertErr.message);
 
     if (manual) {
       const label = document.getElementById('profile-push-label');
