@@ -6,6 +6,7 @@ if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
 const N8N_BASE = 'https://n8n.novaia.cat';
 const WEBHOOK_CHAT = N8N_BASE + '/webhook/barber-chat';
 const WEBHOOK_CONFIG = N8N_BASE + '/webhook/barber-get-config';
+const WEBHOOK_PUSH_SUBSCRIBE = N8N_BASE + '/webhook/barber-push-subscribe';
 
 // ── Supabase ──────────────────────────────────────────────────────
 // TODO: reemplazar con los valores de tu proyecto Supabase Cloud
@@ -897,39 +898,20 @@ async function fetchAndRenderCitas() {
         mensaje:   ''
       })
     });
-    if (!res.ok) throw new Error('appointments error');
-
     const raw = await res.json();
-    const data = Array.isArray(raw) ? (raw[0] || {}) : (raw || {});
-    const citas = Array.isArray(data.citas) ? data.citas : [];
+    const data = Array.isArray(raw) ? raw[0] : raw;
     console.log('[mis-citas]', data);
     citasLoading.style.display = 'none';
 
-    if (citas.length) {
-      renderCitaCards(citas);
+    if (data.citas && data.citas.length) {
+      renderCitaCards(data.citas);
     } else {
-      renderEmptyCitasState();
+      citasContainer.innerHTML = '<div class="citas-empty">No tienes citas proximas.<br>Reserva cuando quieras.</div>';
     }
   } catch {
     citasLoading.style.display = 'none';
     citasContainer.innerHTML = '<div class="citas-empty">Error de conexion. Intentalo de nuevo.</div>';
   }
-}
-
-function renderEmptyCitasState() {
-  citasContainer.innerHTML = '';
-
-  const emptyState = document.createElement('div');
-  emptyState.className = 'citas-empty';
-  emptyState.innerHTML = 'No tienes citas proximas.<br>Reserva cuando quieras.';
-
-  const bookBtn = document.createElement('button');
-  bookBtn.className = 'home-cta-btn';
-  bookBtn.innerHTML = 'Reservar cita <span class="material-symbols-outlined">calendar_month</span>';
-  bookBtn.addEventListener('click', showLandingView);
-
-  emptyState.appendChild(bookBtn);
-  citasContainer.appendChild(emptyState);
 }
 
 function parseCitaDisplay(display) {
@@ -1160,6 +1142,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     session = { nombre: meta.nombre || '', apellido: meta.apellido || '', telefono: meta.telefono || '', email };
     renderServiceCards();
     showHomeView();
+    setTimeout(subscribePush, 1000);
   } catch {
     msgEl.textContent = 'Email o contraseña incorrectos.';
     msgEl.classList.add('auth-msg--error');
@@ -1215,6 +1198,7 @@ regBtn.addEventListener('click', async () => {
       session = { nombre, apellido, telefono, email };
       renderServiceCards();
       showHomeView();
+      setTimeout(subscribePush, 1000);
     } else {
       // Verificación activa → mostrar pantalla "revisa tu correo"
       document.querySelector('#view-register .auth-welcome').style.display = 'none';
@@ -1335,28 +1319,36 @@ chatInput.addEventListener('keydown', e => {
 });
 
 // ── Web Push ──────────────────────────────────────────────────────
+const VAPID_PUBLIC_KEY = 'BNPQ6uu96qGByYyOMdQTSTnjtcK2G9z89tNsiTCOSu8KBect8A5zq1r-cbJhqWBFvX6F9kiOEw_n3Md57Q25m5w';
+
 async function subscribePush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if (!session) return;
   try {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return;
+    // Si ya tiene permiso denegado, no insistir
+    if (Notification.permission === 'denied') return;
 
     const reg = await navigator.serviceWorker.ready;
-    const vapidKey = 'VAPID_PUBLIC_KEY_PLACEHOLDER';
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidKey)
-    });
 
-    await fetch(WEBHOOK_CHAT, {
+    // Reusar suscripción existente o crear nueva
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+
+    // Registrar en servidor (n8n → Supabase)
+    await fetch(WEBHOOK_PUSH_SUBSCRIBE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         barber_id:  barberId,
         telefono:   session.telefono,
-        nombre:     session.nombre,
-        push_token: JSON.stringify(sub),
-        mensaje:    '__push_subscribe__'
+        push_token: JSON.stringify(sub)
       })
     });
   } catch (e) {
@@ -1431,6 +1423,7 @@ if ('serviceWorker' in navigator && !isLocalhost) {
     session = { nombre: meta.nombre || '', apellido: meta.apellido || '', telefono: meta.telefono || '', email: sbSess.user.email };
     renderServiceCards();
     showHomeView();
+    setTimeout(subscribePush, 1500);
   } else {
     if (hashType === 'signup') {
       // Email confirmado pero sesión no activa → ir al login con mensaje
