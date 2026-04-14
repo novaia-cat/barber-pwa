@@ -1372,15 +1372,18 @@ async function subscribePush(manual = false) {
       .eq('auth_user_id', user?.id)
       .maybeSingle();
 
+    // Serializar suscripción (PushSubscription no expone .keys directamente)
+    const subJson = sub.toJSON();
+
     // Guardar suscripción directamente en Supabase
     const { error: upsertErr } = await sb
       .from('push_subscriptions')
       .upsert({
         barberia_id: barberId,
         cliente_id:  cliente?.id ?? null,
-        endpoint:    sub.endpoint,
-        p256dh:      sub.keys.p256dh,
-        auth:        sub.keys.auth,
+        endpoint:    subJson.endpoint,
+        p256dh:      subJson.keys?.p256dh,
+        auth:        subJson.keys?.auth,
         is_admin:    false
       }, { onConflict: 'endpoint' });
 
