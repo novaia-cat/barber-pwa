@@ -92,37 +92,44 @@ export default function Calendario() {
     })
 
     const bloqueosEvents = (bloqueos ?? []).flatMap(b => {
-      // FullCalendar end en allDay es exclusivo — sumar 1 día para incluir fecha_fin
-      const endDate = new Date(b.fecha_fin.slice(0, 10) + 'T12:00:00')
-      endDate.setDate(endDate.getDate() + 1)
-      const endStr = endDate.toISOString().slice(0, 10)
       const isGeneral = !b.peluquero_id
       const label = b.motivo || (b.tipo === 'vacaciones' ? 'Ausencia' : 'Cierre')
       const title = isGeneral ? label : `${label} · ${peluqueroMap[b.peluquero_id] ?? ''}`
       const color = isGeneral ? '#dc2626' : '#ea580c'
-      const start = b.fecha_inicio.slice(0, 10)
-      return [
-        // Fondo coloreado
-        {
-          id: 'bloqueo-bg-' + b.id,
-          start,
-          end: endStr,
+
+      // Expandir el rango en días individuales para cubrir la rejilla horaria con fondo
+      const events = []
+      const cur = new Date(b.fecha_inicio.slice(0, 10) + 'T12:00:00')
+      const fin = new Date(b.fecha_fin.slice(0, 10) + 'T12:00:00')
+      let first = true
+      while (cur <= fin) {
+        const d = cur.toISOString().slice(0, 10)
+        // Fondo que cubre la franja horaria visible
+        events.push({
+          id: `bloqueo-bg-${b.id}-${d}`,
+          start: `${d}T08:00:00`,
+          end: `${d}T20:00:00`,
           display: 'background',
-          backgroundColor: color + '33',
-          allDay: true,
-        },
-        // Etiqueta visible en la franja all-day
-        {
-          id: 'bloqueo-label-' + b.id,
-          title,
-          start,
-          end: endStr,
-          allDay: true,
-          backgroundColor: color,
-          borderColor: color,
-          textColor: '#fff',
-        },
-      ]
+          backgroundColor: color + '40',
+        })
+        // Etiqueta all-day solo en el primer día del rango
+        if (first) {
+          const endLabel = new Date(fin.getTime() + 86400000).toISOString().slice(0, 10)
+          events.push({
+            id: `bloqueo-label-${b.id}`,
+            title,
+            start: b.fecha_inicio.slice(0, 10),
+            end: endLabel,
+            allDay: true,
+            backgroundColor: color,
+            borderColor: color,
+            textColor: '#fff',
+          })
+          first = false
+        }
+        cur.setDate(cur.getDate() + 1)
+      }
+      return events
     })
 
     setEvents([...mapped, ...bloqueosEvents])
@@ -160,7 +167,7 @@ export default function Calendario() {
           buttonText={{ today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' }}
           slotMinTime="08:00:00"
           slotMaxTime="20:00:00"
-          allDaySlot={false}
+          allDaySlot={true}
           weekends={true}
           hiddenDays={[0]} // ocultar domingo
           slotDuration="00:30:00"
