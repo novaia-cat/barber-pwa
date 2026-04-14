@@ -12,6 +12,7 @@ import Equipo from './pages/Equipo'
 import Horario from './pages/Horario'
 import Ajustes from './pages/Ajustes'
 import Cierres from './pages/Cierres'
+import Notificaciones from './pages/Notificaciones'
 
 function ProtectedContent({ user }) {
   const { barberiaId, loading } = useBarberia()
@@ -41,6 +42,7 @@ function ProtectedContent({ user }) {
           <Route path="/equipo" element={<Equipo />} />
           <Route path="/horario" element={<Horario />} />
           <Route path="/cierres" element={<Cierres />} />
+          <Route path="/notificaciones" element={<Notificaciones />} />
           <Route path="/ajustes" element={<Ajustes />} />
           <Route path="*" element={<Navigate to="/calendario" replace />} />
         </Routes>
