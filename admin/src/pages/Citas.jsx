@@ -57,6 +57,7 @@ export default function Citas() {
   const [servicios, setServicios] = useState([])
   const [loading, setLoading] = useState(true)
   const [filtroEstado, setFiltroEstado] = useState('todas')
+  const [filtroFecha, setFiltroFecha] = useState('todas')
   const [modal, setModal] = useState(null)
   const [form, setForm] = useState({})
   const [editId, setEditId] = useState(null)
@@ -88,7 +89,21 @@ export default function Citas() {
     return s?.nombre ?? id ?? '—'
   }
 
-  const filtered = filtroEstado === 'todas' ? citas : citas.filter(c => c.estado === filtroEstado)
+  function isSameDay(isoStr, date) {
+    const d = new Date(isoStr.replace(/([+-]\d{2}:\d{2}|Z)$/, ''))
+    return d.getFullYear() === date.getFullYear() &&
+      d.getMonth() === date.getMonth() &&
+      d.getDate() === date.getDate()
+  }
+
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1)
+
+  const filtered = citas.filter(c => {
+    if (filtroEstado !== 'todas' && c.estado !== filtroEstado) return false
+    if (filtroFecha === 'hoy') return isSameDay(c.fecha_hora, new Date())
+    if (filtroFecha === 'manana') return isSameDay(c.fecha_hora, tomorrow)
+    return true
+  })
 
   function openEdit(c) {
     const fechaLocal = c.fecha_hora ? c.fecha_hora.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16) : ''
@@ -137,6 +152,26 @@ export default function Citas() {
   }
 
   const filterBtns = ['todas', 'confirmada', 'cancelada', 'pendiente']
+  const fechaBtns = [
+    { key: 'todas', label: 'Todas las fechas' },
+    { key: 'hoy', label: 'Hoy' },
+    { key: 'manana', label: 'Mañana' },
+  ]
+
+  function filterPillStyle(active) {
+    return {
+      border: '1px solid var(--color-outline)',
+      borderRadius: 'var(--radius-full)',
+      padding: '5px 14px',
+      fontSize: 13,
+      fontWeight: active ? 600 : 400,
+      fontFamily: 'var(--font)',
+      cursor: 'pointer',
+      background: active ? 'var(--color-secondary)' : '#fff',
+      color: active ? '#fff' : 'var(--color-on-surface-var)',
+      transition: 'all 0.15s',
+    }
+  }
 
   return (
     <div>
@@ -145,30 +180,24 @@ export default function Citas() {
         <button className="btn-primary" onClick={openNew}>+ Nueva cita</button>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-        {filterBtns.map(f => (
-          <button
-            key={f}
-            onClick={() => setFiltroEstado(f)}
-            style={{
-              border: '1px solid var(--color-outline)',
-              borderRadius: 'var(--radius-full)',
-              padding: '5px 14px',
-              fontSize: 13,
-              fontWeight: filtroEstado === f ? 600 : 400,
-              fontFamily: 'var(--font)',
-              cursor: 'pointer',
-              background: filtroEstado === f ? 'var(--color-secondary)' : '#fff',
-              color: filtroEstado === f ? '#fff' : 'var(--color-on-surface-var)',
-              transition: 'all 0.15s',
-            }}
-          >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
-        ))}
-        <span style={{ fontSize: 13, color: 'var(--color-on-surface-var)', alignSelf: 'center', marginLeft: 4 }}>
-          {filtered.length} cita{filtered.length !== 1 ? 's' : ''}
-        </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {fechaBtns.map(f => (
+            <button key={f.key} onClick={() => setFiltroFecha(f.key)} style={filterPillStyle(filtroFecha === f.key)}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {filterBtns.map(f => (
+            <button key={f} onClick={() => setFiltroEstado(f)} style={filterPillStyle(filtroEstado === f)}>
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+          <span style={{ fontSize: 13, color: 'var(--color-on-surface-var)', marginLeft: 4 }}>
+            {filtered.length} cita{filtered.length !== 1 ? 's' : ''}
+          </span>
+        </div>
       </div>
 
       <div className="table-wrap">

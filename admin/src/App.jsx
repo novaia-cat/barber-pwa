@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { supabase } from './lib/supabase'
 import { BarberiaProvider, useBarberia } from './lib/BarberiaContext'
-import { supabase } from './lib/supabase'
 import Sidebar from './components/Sidebar'
 import Login from './pages/Login'
 import Calendario from './pages/Calendario'
@@ -12,6 +11,7 @@ import Servicios from './pages/Servicios'
 import Equipo from './pages/Equipo'
 import Horario from './pages/Horario'
 import Ajustes from './pages/Ajustes'
+import Cierres from './pages/Cierres'
 
 function ProtectedContent({ user }) {
   const { barberiaId, loading } = useBarberia()
@@ -40,6 +40,7 @@ function ProtectedContent({ user }) {
           <Route path="/servicios" element={<Servicios />} />
           <Route path="/equipo" element={<Equipo />} />
           <Route path="/horario" element={<Horario />} />
+          <Route path="/cierres" element={<Cierres />} />
           <Route path="/ajustes" element={<Ajustes />} />
           <Route path="*" element={<Navigate to="/calendario" replace />} />
         </Routes>
