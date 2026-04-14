@@ -31,7 +31,8 @@ function tipoBadge(tipo) {
 
 function formatDate(d) {
   if (!d) return '—'
-  return new Date(d + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+  const dateStr = d.slice(0, 10)
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 function Modal({ title, onClose, onSave, saving, children }) {
