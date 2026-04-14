@@ -578,6 +578,13 @@ profileLogoutBtn.addEventListener('click', async () => {
   }
 });
 
+document.getElementById('profile-push-btn').addEventListener('click', async () => {
+  const label = document.getElementById('profile-push-label');
+  label.textContent = 'Activando...';
+  const ok = await subscribePush(true);
+  if (!ok) label.textContent = 'Activar notificaciones';
+});
+
 
 // ── Quick replies ─────────────────────────────────────────────────
 function parseQuickReplies(text) {
@@ -1321,20 +1328,36 @@ chatInput.addEventListener('keydown', e => {
 // ── Web Push ──────────────────────────────────────────────────────
 const VAPID_PUBLIC_KEY = 'BNPQ6uu96qGByYyOMdQTSTnjtcK2G9z89tNsiTCOSu8KBect8A5zq1r-cbJhqWBFvX6F9kiOEw_n3Md57Q25m5w';
 
-async function subscribePush() {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-  if (!session) return;
+async function subscribePush(manual = false) {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    if (manual) alert('Tu navegador no soporta notificaciones push.');
+    return false;
+  }
+  if (!session) return false;
+
   try {
-    // Si ya tiene permiso denegado, no insistir
-    if (Notification.permission === 'denied') return;
+    if (Notification.permission === 'denied') {
+      if (manual) alert('Las notificaciones están bloqueadas. Actívalas desde los ajustes del navegador.');
+      return false;
+    }
 
     const reg = await navigator.serviceWorker.ready;
 
-    // Reusar suscripción existente o crear nueva
+    // Si hay suscripción con clave vieja (inválida), limpiarla
     let sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      const subKey = sub.options?.applicationServerKey;
+      const newKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      // Comparar claves — si distinta, rehacer
+      if (subKey && subKey.byteLength !== newKey.byteLength) {
+        await sub.unsubscribe();
+        sub = null;
+      }
+    }
+
     if (!sub) {
       const permission = await Notification.requestPermission();
-      if (permission !== 'granted') return;
+      if (permission !== 'granted') return false;
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
@@ -1342,7 +1365,7 @@ async function subscribePush() {
     }
 
     // Registrar en servidor (n8n → Supabase)
-    await fetch(WEBHOOK_PUSH_SUBSCRIBE, {
+    const res = await fetch(WEBHOOK_PUSH_SUBSCRIBE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1351,8 +1374,16 @@ async function subscribePush() {
         push_token: JSON.stringify(sub)
       })
     });
+
+    if (manual) {
+      const label = document.getElementById('profile-push-label');
+      if (label) label.textContent = 'Notificaciones activas ✓';
+    }
+    return true;
   } catch (e) {
-    console.warn('Push subscribe fallido:', e);
+    console.error('Push subscribe fallido:', e);
+    if (manual) alert('Error al activar notificaciones: ' + e.message);
+    return false;
   }
 }
 
