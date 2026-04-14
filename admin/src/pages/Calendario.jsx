@@ -60,14 +60,17 @@ export default function Calendario() {
     let query = supabase.from('citas').select('id, cliente_id, servicio_id, fecha_hora, duracion_min, estado').eq('barberia_id', barberiaId)
     if (!conCanceladas) query = query.neq('estado', 'cancelada')
 
-    const [{ data: citas }, { data: clientes }, { data: servicios }] = await Promise.all([
+    const [{ data: citas }, { data: clientes }, { data: servicios }, { data: bloqueos }, { data: peluqueros }] = await Promise.all([
       query,
       supabase.from('clientes').select('id, nombre, apellido'),
       supabase.from('servicios').select('id, nombre'),
+      supabase.from('bloqueos').select('id, peluquero_id, fecha_inicio, fecha_fin, motivo, tipo').eq('barberia_id', barberiaId),
+      supabase.from('peluqueros').select('id, nombre').eq('barberia_id', barberiaId),
     ])
 
     const clienteMap = Object.fromEntries((clientes ?? []).map(c => [c.id, `${c.nombre} ${c.apellido ?? ''}`.trim()]))
     const servicioMap = Object.fromEntries((servicios ?? []).map(s => [s.id, s.nombre]))
+    const peluqueroMap = Object.fromEntries((peluqueros ?? []).map(p => [p.id, p.nombre]))
 
     const mapped = (citas ?? []).map(c => {
       // fecha_hora se almacena con +00:00 pero el valor es hora Madrid (no UTC).
@@ -87,7 +90,27 @@ export default function Calendario() {
         extendedProps: { estado: c.estado },
       }
     })
-    setEvents(mapped)
+
+    const bloqueosEvents = (bloqueos ?? []).map(b => {
+      // FullCalendar end en allDay es exclusivo — sumar 1 día para incluir fecha_fin
+      const endDate = new Date(b.fecha_fin.slice(0, 10) + 'T12:00:00')
+      endDate.setDate(endDate.getDate() + 1)
+      const endStr = endDate.toISOString().slice(0, 10)
+      const isGeneral = !b.peluquero_id
+      const label = b.motivo || (b.tipo === 'vacaciones' ? 'Ausencia' : 'Cierre')
+      const title = isGeneral ? label : `${label} (${peluqueroMap[b.peluquero_id] ?? ''})`
+      return {
+        id: 'bloqueo-' + b.id,
+        title,
+        start: b.fecha_inicio.slice(0, 10),
+        end: endStr,
+        display: 'background',
+        backgroundColor: isGeneral ? '#ef444466' : '#f9731666',
+        allDay: true,
+      }
+    })
+
+    setEvents([...mapped, ...bloqueosEvents])
   }
 
   useEffect(() => { if (barberiaId) loadEvents(mostrarCanceladas) }, [mostrarCanceladas, barberiaId])
