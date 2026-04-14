@@ -91,23 +91,38 @@ export default function Calendario() {
       }
     })
 
-    const bloqueosEvents = (bloqueos ?? []).map(b => {
+    const bloqueosEvents = (bloqueos ?? []).flatMap(b => {
       // FullCalendar end en allDay es exclusivo — sumar 1 día para incluir fecha_fin
       const endDate = new Date(b.fecha_fin.slice(0, 10) + 'T12:00:00')
       endDate.setDate(endDate.getDate() + 1)
       const endStr = endDate.toISOString().slice(0, 10)
       const isGeneral = !b.peluquero_id
       const label = b.motivo || (b.tipo === 'vacaciones' ? 'Ausencia' : 'Cierre')
-      const title = isGeneral ? label : `${label} (${peluqueroMap[b.peluquero_id] ?? ''})`
-      return {
-        id: 'bloqueo-' + b.id,
-        title,
-        start: b.fecha_inicio.slice(0, 10),
-        end: endStr,
-        display: 'background',
-        backgroundColor: isGeneral ? '#ef444466' : '#f9731666',
-        allDay: true,
-      }
+      const title = isGeneral ? label : `${label} · ${peluqueroMap[b.peluquero_id] ?? ''}`
+      const color = isGeneral ? '#dc2626' : '#ea580c'
+      const start = b.fecha_inicio.slice(0, 10)
+      return [
+        // Fondo coloreado
+        {
+          id: 'bloqueo-bg-' + b.id,
+          start,
+          end: endStr,
+          display: 'background',
+          backgroundColor: color + '33',
+          allDay: true,
+        },
+        // Etiqueta visible en la franja all-day
+        {
+          id: 'bloqueo-label-' + b.id,
+          title,
+          start,
+          end: endStr,
+          allDay: true,
+          backgroundColor: color,
+          borderColor: color,
+          textColor: '#fff',
+        },
+      ]
     })
 
     setEvents([...mapped, ...bloqueosEvents])
