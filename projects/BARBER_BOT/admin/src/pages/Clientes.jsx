@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-
-const BARBERIA_ID = 'barber'
+import { useBarberia } from '../lib/BarberiaContext'
 
 const IconEdit = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -44,6 +43,7 @@ function normalizePhone(value) {
 }
 
 export default function Clientes() {
+  const { barberiaId } = useBarberia()
   const [clientes, setClientes] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -58,13 +58,13 @@ export default function Clientes() {
     const { data } = await supabase
       .from('clientes')
       .select('id, nombre, apellido, telefono, email, fecha_registro')
-      .eq('barberia_id', BARBERIA_ID)
+      .eq('barberia_id', barberiaId)
       .order('fecha_registro', { ascending: false })
     setClientes(data ?? [])
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { if (barberiaId) load() }, [barberiaId])
 
   const filtered = clientes.filter(c => {
     const q = search.toLowerCase()
@@ -98,7 +98,7 @@ export default function Clientes() {
     setError('')
     if (modal === 'new') {
       const { error: err } = await supabase.from('clientes').insert([{
-        barberia_id: BARBERIA_ID,
+        barberia_id: barberiaId,
         nombre: form.nombre.trim(),
         apellido: form.apellido.trim() || null,
         telefono,
@@ -112,7 +112,7 @@ export default function Clientes() {
         apellido: form.apellido.trim() || null,
         telefono,
         email: form.email.trim() || null,
-      }).eq('id', editId).eq('barberia_id', BARBERIA_ID)
+      }).eq('id', editId).eq('barberia_id', barberiaId)
       if (err) setError(err.code === '23505' ? 'Ya existe un cliente con ese teléfono en esta barbería.' : err.message)
       else { setModal(null); load() }
     }
@@ -121,7 +121,7 @@ export default function Clientes() {
 
   async function handleDelete(id) {
     if (!confirm('¿Borrar este cliente?')) return
-    await supabase.from('clientes').delete().eq('id', id).eq('barberia_id', BARBERIA_ID)
+    await supabase.from('clientes').delete().eq('id', id).eq('barberia_id', barberiaId)
     load()
   }
 
