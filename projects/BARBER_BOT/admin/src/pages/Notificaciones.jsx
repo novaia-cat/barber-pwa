@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useBarberia } from '../lib/BarberiaContext'
 
-const SUPABASE_URL = 'https://cynnuucihcniqusomgol.supabase.co'
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const EDGE_SEND_PUSH = `${SUPABASE_URL}/functions/v1/send-push`
 
-// service_role key — solo usada en admin (no expuesta en PWA pública)
-const SUPA_SERVICE_KEY = 'REDACTED_SERVICE_KEY_ROTATED'
+// service_role key — leída desde variable de entorno, nunca hardcodeada en código
+const SUPA_SERVICE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_KEY
 
 const IconBell = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
