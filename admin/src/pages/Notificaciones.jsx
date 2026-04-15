@@ -2,11 +2,9 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useBarberia } from '../lib/BarberiaContext'
 
-const SUPABASE_URL = 'https://cynnuucihcniqusomgol.supabase.co'
+const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY
 const EDGE_SEND_PUSH = `${SUPABASE_URL}/functions/v1/send-push`
-
-// service_role key — solo usada en admin (no expuesta en PWA pública)
-const SUPA_SERVICE_KEY = 'REDACTED_SERVICE_KEY_ROTATED'
 
 const IconBell = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
@@ -112,7 +110,7 @@ export default function Notificaciones() {
 
       const res = await fetch(EDGE_SEND_PUSH, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPA_SERVICE_KEY}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPABASE_ANON}` },
         body: JSON.stringify({ subscriptions, title: titulo, body: cuerpo, url: '/' })
       })
       const data = await res.json()
