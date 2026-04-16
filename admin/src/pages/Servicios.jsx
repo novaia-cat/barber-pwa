@@ -56,8 +56,17 @@ export default function Servicios() {
 
   useEffect(() => { if (barberiaId) load() }, [barberiaId])
 
+  function generateNextId() {
+    const nums = servicios
+      .map(s => s.id.match(/^SRV(\d+)$/i))
+      .filter(Boolean)
+      .map(m => parseInt(m[1], 10))
+    const next = nums.length ? Math.max(...nums) + 1 : 1
+    return 'SRV' + String(next).padStart(3, '0')
+  }
+
   function openNew() {
-    setForm(EMPTY)
+    setForm({ ...EMPTY, id: generateNextId() })
     setEditId(null)
     setError('')
     setModal('new')
@@ -72,7 +81,6 @@ export default function Servicios() {
 
   async function handleSave() {
     if (!form.nombre.trim()) { setError('El nombre es obligatorio.'); return }
-    if (!form.id.trim() && modal === 'new') { setError('El ID es obligatorio (ej: SRV004).'); return }
     setSaving(true)
     setError('')
 
@@ -173,12 +181,6 @@ export default function Servicios() {
         >
           {error && <div className="error-msg">{error}</div>}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {modal === 'new' && (
-              <div className="form-group">
-                <label className="form-label">ID (ej: SRV004) *</label>
-                <input className="input" value={form.id} onChange={e => setForm(f => ({ ...f, id: e.target.value }))} placeholder="SRV004" />
-              </div>
-            )}
             <div className="form-group">
               <label className="form-label">Nombre *</label>
               <input className="input" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre del servicio" />
