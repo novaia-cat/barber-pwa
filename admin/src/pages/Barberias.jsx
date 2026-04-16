@@ -44,7 +44,7 @@ const EMPTY_FORM = {
 
 const EDIT_FIELDS = ['nombre', 'direccion', 'telefono', 'email_admin', 'logo_url', 'imagen_url', 'color_primary', 'color_secondary', 'tier']
 
-function FieldInput({ fieldKey, label, value, onChange, placeholder, type = 'text', required }) {
+function FieldInput({ fieldKey, label, value, onChange, placeholder, type = 'text', required, autoComplete }) {
   return (
     <div className="form-group">
       <label className="form-label">{label}{required ? ' *' : ''}</label>
@@ -56,7 +56,7 @@ function FieldInput({ fieldKey, label, value, onChange, placeholder, type = 'tex
         </select>
       ) : (
         <input className="input" type={type} value={value} placeholder={placeholder}
-          onChange={e => onChange(fieldKey, e.target.value)} />
+          autoComplete={autoComplete} onChange={e => onChange(fieldKey, e.target.value)} />
       )}
     </div>
   )
@@ -81,8 +81,8 @@ function FormGrid({ data, onChange, includeId = false, includeAdminUser = false 
       {includeAdminUser && (
         <>
           <div style={{ gridColumn: '1 / -1', height: 1, background: 'var(--color-outline)', margin: '4px 0' }} />
-          <FieldInput fieldKey="admin_email"    label="Email acceso admin"     value={data.admin_email}    onChange={onChange} placeholder="nuevo@barberia.com" type="email" />
-          <FieldInput fieldKey="admin_password" label="Contraseña temporal"    value={data.admin_password} onChange={onChange} placeholder="Min. 8 caracteres" type="password" />
+          <FieldInput fieldKey="admin_email"    label="Email acceso admin"     value={data.admin_email}    onChange={onChange} placeholder="nuevo@barberia.com" type="email" autoComplete="off" />
+          <FieldInput fieldKey="admin_password" label="Contraseña temporal"    value={data.admin_password} onChange={onChange} placeholder="Min. 8 caracteres" type="password" autoComplete="new-password" />
         </>
       )}
     </div>
