@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useBarberia } from '../lib/BarberiaContext'
 
-const SUPABASE_URL = 'https://cynnuucihcniqusomgol.supabase.co'
-const SUPABASE_SERVICE_ROLE = 'REDACTED_ROTATE_KEY'
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_SERVICE_ROLE = import.meta.env.VITE_SUPABASE_SERVICE_ROLE
 
 async function createAdminUser(email, password, barberia_id) {
   // Crear usuario en Supabase Auth
