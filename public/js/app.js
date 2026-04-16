@@ -1564,6 +1564,10 @@ if ('serviceWorker' in navigator && !isLocalhost) {
   const { data: { session: sbSess } } = await sb.auth.getSession();
   history.replaceState(null, '', window.location.pathname);
 
+  // Ceder el event loop para que onAuthStateChange (PASSWORD_RECOVERY en PKCE)
+  // pueda dispararse y setear recoveryHandled antes de continuar.
+  await Promise.resolve();
+
   // Si onAuthStateChange ya gestionó PASSWORD_RECOVERY, no navegar
   if (recoveryHandled) return;
 
