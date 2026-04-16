@@ -7,7 +7,7 @@ const N8N_CREATE_ADMIN_URL = 'https://n8n.novaia.cat/webhook/barber-create-admin
 const EMPTY_FORM = {
   id: '', nombre: '', direccion: '', telefono: '',
   email_admin: '', logo_url: '', imagen_url: '',
-  color_primary: '#725b3f', color_secondary: '#2d2d2d',
+  color_primary: '#5f5e5e', color_secondary: '#725b3f',
   tier: 'free',
   admin_email: '', admin_password: ''
 }
@@ -63,8 +63,9 @@ function EditRow({ b, onSaved, onCancel }) {
   const [form, setForm] = useState({
     nombre: b.nombre ?? '', direccion: b.direccion ?? '', telefono: b.telefono ?? '',
     email_admin: b.email_admin ?? '', logo_url: b.logo_url ?? '', imagen_url: b.imagen_url ?? '',
-    color_primary: b.color_primary ?? '#725b3f', color_secondary: b.color_secondary ?? '#2d2d2d',
-    tier: b.tier ?? 'free'
+    color_primary: b.color_primary ?? '#5f5e5e', color_secondary: b.color_secondary ?? '#725b3f',
+    tier: b.tier ?? 'free',
+    admin_email: '', admin_password: ''
   })
   const [saving, setSaving] = useState(false)
   const [err, setErr]       = useState(null)
@@ -87,6 +88,20 @@ function EditRow({ b, onSaved, onCancel }) {
     }
     const { error } = await supabase.from('barberias').update(updates).eq('id', b.id)
     if (error) { setErr(error.message); setSaving(false); return }
+
+    if (form.admin_email.trim() && form.admin_password.trim()) {
+      if (form.admin_password.trim().length < 8) { setErr('La contraseña debe tener al menos 8 caracteres.'); setSaving(false); return }
+      try {
+        const res = await fetch(N8N_CREATE_ADMIN_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: form.admin_email.trim(), password: form.admin_password.trim(), barberia_id: b.id })
+        })
+        const data = await res.json()
+        if (!data.ok) { setErr(`Guardado pero error al crear usuario: ${data.error}`); setSaving(false); return }
+      } catch (e) { setErr(`Guardado pero error de red: ${e.message}`); setSaving(false); return }
+    }
+
     onSaved({ ...b, ...updates })
     setSaving(false)
   }
@@ -97,7 +112,7 @@ function EditRow({ b, onSaved, onCancel }) {
         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-on-surface-var)', marginBottom: 12 }}>
           Editando: <code style={{ fontFamily: 'monospace' }}>{b.id}</code>
         </div>
-        <FormGrid data={form} onChange={handleChange} />
+        <FormGrid data={form} onChange={handleChange} includeAdminUser />
         {err && <div className="error-msg" style={{ marginTop: 12 }}>{err}</div>}
         <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button className="btn-ghost" onClick={onCancel}>Cancelar</button>
