@@ -967,6 +967,20 @@ body {
   margin-bottom: 3px;
 }
 
+.cita-barberia-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.cita-barberia-name .material-symbols-outlined {
+  font-size: 13px;
+}
+
 .cita-time-meta {
   display: flex;
   align-items: center;

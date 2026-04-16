@@ -1062,6 +1062,12 @@ function renderCitaCards(citas) {
     metaEl.innerHTML = `<span class="material-symbols-outlined">schedule</span>${timeStr}${durStr}`;
 
     info.appendChild(nameEl);
+    if (cita.barberia) {
+      const barberiaEl = document.createElement('div');
+      barberiaEl.className = 'cita-barberia-name';
+      barberiaEl.innerHTML = `<span class="material-symbols-outlined">storefront</span>${cita.barberia}`;
+      info.appendChild(barberiaEl);
+    }
     info.appendChild(metaEl);
 
     const btn = document.createElement('button');

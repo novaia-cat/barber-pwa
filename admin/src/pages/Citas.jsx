@@ -66,14 +66,20 @@ export default function Citas() {
 
   async function load() {
     setLoading(true)
-    const [{ data: c }, { data: cl }, { data: sv }] = await Promise.all([
+    const [{ data: c }, { data: sv }] = await Promise.all([
       supabase.from('citas').select('id, cliente_id, servicio_id, fecha_hora, duracion_min, estado').eq('barberia_id', barberiaId).order('fecha_hora', { ascending: false }),
-      supabase.from('clientes').select('id, nombre, apellido').eq('barberia_id', barberiaId),
       supabase.from('servicios').select('id, nombre').eq('barberia_id', barberiaId),
     ])
-    setCitas(c ?? [])
-    setClientes(cl ?? [])
+    const citas = c ?? []
+    setCitas(citas)
     setServicios(sv ?? [])
+    const ids = [...new Set(citas.map(x => x.cliente_id).filter(Boolean))]
+    if (ids.length) {
+      const { data: cl } = await supabase.from('clientes').select('id, nombre, apellido').in('id', ids)
+      setClientes(cl ?? [])
+    } else {
+      setClientes([])
+    }
     setLoading(false)
   }
 
