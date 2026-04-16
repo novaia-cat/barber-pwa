@@ -23,6 +23,15 @@ sb.auth.onAuthStateChange((event, _session) => {
   }
 });
 
+// Normaliza teléfono: quita +34/0034, espacios, guiones → solo dígitos
+function normalizeTelefono(tel) {
+  let t = tel.trim().replace(/[\s\-\.]/g, '');
+  if (t.startsWith('+34'))   t = t.slice(3);
+  else if (t.startsWith('0034')) t = t.slice(4);
+  t = t.replace(/^\+/, '');
+  return t;
+}
+
 function getBarberId() {
   // En multi-pelu: el usuario puede seleccionar y guardar su peluquería en localStorage
   const stored = localStorage.getItem('selected_barber_id');
@@ -1244,7 +1253,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
 regBtn.addEventListener('click', async () => {
   const nombre   = regNombre.value.trim();
   const apellido = regApellido.value.trim();
-  const telefono = regTelefono.value.trim().replace(/\s/g, '');
+  const telefono = normalizeTelefono(regTelefono.value);
   const email    = document.getElementById('reg-email').value.trim();
   const password = document.getElementById('reg-password').value;
   const passConf = document.getElementById('reg-password-confirm').value;
