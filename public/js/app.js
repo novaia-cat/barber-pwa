@@ -1276,16 +1276,13 @@ regBtn.addEventListener('click', async () => {
   regBtn.disabled = true;
   regBtn.textContent = 'Creando cuenta...';
 
-  // Verificar si el teléfono ya existe en esta barbería.
-  // Requiere policy SELECT anon en `clientes`. Si RLS bloquea → data null → continuamos.
+  // Verificar si el teléfono ya existe en esta barbería via RPC function.
+  // Requiere: CREATE FUNCTION public.check_phone_exists(...) SECURITY DEFINER + GRANT TO anon
+  // Si la función no existe o falla → continuamos sin bloquear el registro.
   try {
-    const { data: existing } = await sb
-      .from('clientes')
-      .select('id')
-      .eq('barberia_id', barberId)
-      .eq('telefono', telefono)
-      .maybeSingle();
-    if (existing) {
+    const { data: phoneExists, error: rpcErr } = await sb
+      .rpc('check_phone_exists', { p_telefono: telefono, p_barberia_id: barberId });
+    if (!rpcErr && phoneExists === true) {
       msgEl.textContent = 'Este número de teléfono ya está registrado. Inicia sesión o usa otro número.';
       msgEl.classList.add('auth-msg--error');
       regTelefono.focus();
@@ -1293,7 +1290,7 @@ regBtn.addEventListener('click', async () => {
       regBtn.textContent = 'Crear cuenta';
       return;
     }
-  } catch { /* Si la query falla por RLS u otro motivo, continuamos */ }
+  } catch { /* Si la función no existe aún, continuamos */ }
 
   try {
     const { data, error } = await sb.auth.signUp({
