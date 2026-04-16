@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useBarberia } from '../lib/BarberiaContext'
 
+const N8N_CREATE_ADMIN_URL = 'https://n8n.novaia.cat/webhook/barber-create-admin-user'
+
 const EMPTY_FORM = {
   id: '', nombre: '', direccion: '', telefono: '',
   email_admin: '', logo_url: '', imagen_url: '',
   color_primary: '#725b3f', color_secondary: '#2d2d2d',
-  tier: 'free'
+  tier: 'free',
+  admin_email: '', admin_password: ''
 }
 
 const EDIT_FIELDS = ['nombre', 'direccion', 'telefono', 'email_admin', 'logo_url', 'imagen_url', 'color_primary', 'color_secondary', 'tier']
@@ -29,7 +32,7 @@ function FieldInput({ fieldKey, label, value, onChange, placeholder, type = 'tex
   )
 }
 
-function FormGrid({ data, onChange, includeId = false }) {
+function FormGrid({ data, onChange, includeId = false, includeAdminUser = false }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
       {includeId && (
@@ -39,12 +42,19 @@ function FormGrid({ data, onChange, includeId = false }) {
       <FieldInput fieldKey="nombre"          label="Nombre"              value={data.nombre}          onChange={onChange} placeholder="La Barbería de Juan" required />
       <FieldInput fieldKey="direccion"       label="Dirección"           value={data.direccion}       onChange={onChange} placeholder="Calle Mayor 1, Barcelona" />
       <FieldInput fieldKey="telefono"        label="Teléfono"            value={data.telefono}        onChange={onChange} placeholder="612 345 678" />
-      <FieldInput fieldKey="email_admin"     label="Email admin"         value={data.email_admin}     onChange={onChange} placeholder="admin@barberia.com" />
+      <FieldInput fieldKey="email_admin"     label="Email admin (info)"  value={data.email_admin}     onChange={onChange} placeholder="admin@barberia.com" />
       <FieldInput fieldKey="tier"            label="Plan"                value={data.tier}            onChange={onChange} type="select" />
       <FieldInput fieldKey="logo_url"        label="Logo (URL)"          value={data.logo_url}        onChange={onChange} placeholder="https://..." />
       <FieldInput fieldKey="imagen_url"      label="Imagen fondo (URL)"  value={data.imagen_url}      onChange={onChange} placeholder="https://..." />
       <FieldInput fieldKey="color_primary"   label="Color primario"      value={data.color_primary}   onChange={onChange} type="color" />
       <FieldInput fieldKey="color_secondary" label="Color secundario"    value={data.color_secondary} onChange={onChange} type="color" />
+      {includeAdminUser && (
+        <>
+          <div style={{ gridColumn: '1 / -1', height: 1, background: 'var(--color-outline)', margin: '4px 0' }} />
+          <FieldInput fieldKey="admin_email"    label="Email acceso admin"     value={data.admin_email}    onChange={onChange} placeholder="nuevo@barberia.com" type="email" />
+          <FieldInput fieldKey="admin_password" label="Contraseña temporal"    value={data.admin_password} onChange={onChange} placeholder="Min. 8 caracteres" type="password" />
+        </>
+      )}
     </div>
   )
 }
@@ -134,12 +144,49 @@ export default function Barberias() {
     const { error } = await supabase.from('barberias').insert(row)
     if (error) {
       setMsg({ type: 'err', text: error.message })
-    } else {
-      setAllBarberias(prev => [...prev, row].sort((a, b) => a.nombre.localeCompare(b.nombre)))
-      setForm(EMPTY_FORM)
-      setShowForm(false)
-      setMsg({ type: 'ok', text: `Barbería "${row.nombre}" creada. Vincula el admin en Supabase Auth → auth_user_id.` })
+      setSaving(false)
+      return
     }
+
+    // Si se rellenaron credenciales admin, crear usuario via n8n
+    if (form.admin_email.trim() && form.admin_password.trim()) {
+      if (form.admin_password.trim().length < 8) {
+        setMsg({ type: 'err', text: 'La contraseña debe tener al menos 8 caracteres.' })
+        setSaving(false)
+        return
+      }
+      try {
+        const res = await fetch(N8N_CREATE_ADMIN_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: form.admin_email.trim(),
+            password: form.admin_password.trim(),
+            barberia_id: row.id
+          })
+        })
+        const data = await res.json()
+        if (!data.ok) {
+          setMsg({ type: 'err', text: `Barbería creada pero error al crear usuario: ${data.error}` })
+          setSaving(false)
+          return
+        }
+        // Actualizar fila local con auth_user_id si viene en la respuesta
+        if (data.user_id) row.auth_user_id = data.user_id
+      } catch (e) {
+        setMsg({ type: 'err', text: `Barbería creada pero error de red al crear usuario: ${e.message}` })
+        setSaving(false)
+        return
+      }
+    }
+
+    setAllBarberias(prev => [...prev, row].sort((a, b) => a.nombre.localeCompare(b.nombre)))
+    setForm(EMPTY_FORM)
+    setShowForm(false)
+    const userMsg = form.admin_email.trim()
+      ? `Barbería "${row.nombre}" creada con usuario admin (${form.admin_email.trim()}).`
+      : `Barbería "${row.nombre}" creada. Vincula el admin en Supabase Auth → auth_user_id.`
+    setMsg({ type: 'ok', text: userMsg })
     setSaving(false)
   }
 
@@ -178,9 +225,9 @@ export default function Barberias() {
       {showForm && (
         <div style={cardStyle}>
           <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 20 }}>Nueva barbería</h2>
-          <FormGrid data={form} onChange={handleFormChange} includeId />
+          <FormGrid data={form} onChange={handleFormChange} includeId includeAdminUser />
           <div style={{ marginTop: 10, padding: '10px 12px', background: 'var(--color-surface-var)', borderRadius: 'var(--radius-md)', fontSize: 12, color: 'var(--color-on-surface-var)' }}>
-            Tras crear la barbería, ve a <strong>Supabase → Authentication → Users</strong> para crear el usuario admin y pega su UUID en la columna <code>auth_user_id</code> de la tabla <code>barberias</code>.
+            Si rellenas <strong>Email acceso admin</strong> + <strong>Contraseña temporal</strong>, se creará el usuario en Supabase Auth y se vinculará automáticamente. Si los dejas en blanco, deberás hacerlo manualmente.
           </div>
           <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
             <button className="btn-primary" onClick={handleCreate} disabled={saving}>
