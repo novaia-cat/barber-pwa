@@ -24,6 +24,9 @@ sb.auth.onAuthStateChange((event, _session) => {
 });
 
 function getBarberId() {
+  // En multi-pelu: el usuario puede seleccionar y guardar su peluquería en localStorage
+  const stored = localStorage.getItem('selected_barber_id');
+  if (stored) return stored;
   const host = window.location.hostname;
   const parts = host.split('.');
   return parts.length >= 3 ? parts[0] : 'barber';
@@ -98,6 +101,8 @@ function hideAllViews() {
   viewConfirmation.classList.remove('active');
   viewCitas.classList.remove('active');
   viewChat.classList.remove('active');
+  const vsb = document.getElementById('view-select-barber');
+  if (vsb) vsb.classList.remove('active');
   appHeader.style.display = 'none';
   bottomNav.style.display = 'none';
   closeProfilePanel();
@@ -578,6 +583,11 @@ profileLogoutBtn.addEventListener('click', async () => {
   }
 });
 
+document.getElementById('profile-change-barber-btn').addEventListener('click', () => {
+  closeProfilePanel();
+  showSelectBarberView();
+});
+
 document.getElementById('profile-push-btn').addEventListener('click', async () => {
   const label = document.getElementById('profile-push-label');
   label.textContent = 'Activando...';
@@ -585,6 +595,62 @@ document.getElementById('profile-push-btn').addEventListener('click', async () =
   if (!ok) label.textContent = 'Activar notificaciones';
 });
 
+
+// ── Seleccionar peluquería ────────────────────────────────────────
+function showSelectBarberView() {
+  hideAllViews();
+  document.getElementById('view-select-barber').classList.add('active');
+  loadBarberList();
+}
+
+async function loadBarberList() {
+  const list = document.getElementById('barber-list');
+  list.innerHTML = '<div class="barber-list-loading"><div class="spinner"></div></div>';
+
+  try {
+    const { data: barberias, error } = await sb
+      .from('barberias')
+      .select('id, nombre, logo_url')
+      .order('nombre');
+
+    if (error || !barberias || !barberias.length) {
+      list.innerHTML = '<p class="barber-list-empty">No hay peluquerías disponibles.</p>';
+      return;
+    }
+
+    list.innerHTML = '';
+    barberias.forEach(b => {
+      const card = document.createElement('button');
+      card.className = 'barber-option-card' + (b.id === barberId ? ' active' : '');
+      const logoHtml = b.logo_url
+        ? `<img src="${b.logo_url}" alt="${b.nombre || b.id}" loading="lazy">`
+        : `<span class="material-symbols-outlined">content_cut</span>`;
+      const checkHtml = b.id === barberId
+        ? `<span class="material-symbols-outlined barber-option-check">check_circle</span>`
+        : '';
+      card.innerHTML = `
+        <div class="barber-option-logo">${logoHtml}</div>
+        <span class="barber-option-name">${b.nombre || b.id}</span>
+        ${checkHtml}
+      `;
+      card.addEventListener('click', () => {
+        localStorage.setItem('selected_barber_id', b.id);
+        location.reload();
+      });
+      list.appendChild(card);
+    });
+  } catch {
+    list.innerHTML = '<p class="barber-list-empty">Error al cargar peluquerías.</p>';
+  }
+}
+
+document.getElementById('select-barber-back-btn').addEventListener('click', () => {
+  if (session) {
+    showHomeView();
+  } else {
+    showLoginView();
+  }
+});
 
 // ── Quick replies ─────────────────────────────────────────────────
 function parseQuickReplies(text) {
@@ -1116,7 +1182,7 @@ async function sendMessage(text) {
 });
 
 // ── Navegación auth ───────────────────────────────────────────────
-document.getElementById('go-register-btn').addEventListener('click', e => { e.preventDefault(); showRegisterView(); });
+document.getElementById('go-register-btn').addEventListener('click', () => showRegisterView());
 document.getElementById('go-login-btn').addEventListener('click',    e => { e.preventDefault(); showLoginView(); });
 document.getElementById('email-sent-login-btn').addEventListener('click', () => {
   // Resetear estado del registro antes de ir al login
@@ -1127,6 +1193,17 @@ document.getElementById('email-sent-login-btn').addEventListener('click', () => 
 });
 document.getElementById('forgot-password-btn').addEventListener('click', () => showForgotPasswordView());
 document.getElementById('go-login-from-forgot-btn').addEventListener('click', e => { e.preventDefault(); showLoginView(); });
+
+// ── Toggles mostrar/ocultar contraseña ───────────────────────────
+document.querySelectorAll('.auth-pw-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = document.getElementById(btn.dataset.target);
+    if (!target) return;
+    const show = target.type === 'password';
+    target.type = show ? 'text' : 'password';
+    btn.querySelector('.material-symbols-outlined').textContent = show ? 'visibility_off' : 'visibility';
+  });
+});
 
 // ── Login con Supabase ────────────────────────────────────────────
 document.getElementById('login-btn').addEventListener('click', async () => {
@@ -1189,6 +1266,25 @@ regBtn.addEventListener('click', async () => {
 
   regBtn.disabled = true;
   regBtn.textContent = 'Creando cuenta...';
+
+  // Verificar si el teléfono ya existe en esta barbería.
+  // Requiere policy SELECT anon en `clientes`. Si RLS bloquea → data null → continuamos.
+  try {
+    const { data: existing } = await sb
+      .from('clientes')
+      .select('id')
+      .eq('barberia_id', barberId)
+      .eq('telefono', telefono)
+      .maybeSingle();
+    if (existing) {
+      msgEl.textContent = 'Este número de teléfono ya está registrado. Inicia sesión o usa otro número.';
+      msgEl.classList.add('auth-msg--error');
+      regTelefono.focus();
+      regBtn.disabled = false;
+      regBtn.textContent = 'Crear cuenta';
+      return;
+    }
+  } catch { /* Si la query falla por RLS u otro motivo, continuamos */ }
 
   try {
     const { data, error } = await sb.auth.signUp({
@@ -1444,21 +1540,23 @@ if ('serviceWorker' in navigator && !isLocalhost) {
   viewLoading.classList.add('hidden');
   setTimeout(() => { viewLoading.style.display = 'none'; }, 320);
 
-  // Detectar redirects en hash (implicit flow) o query param (PKCE)
+  // Leer params ANTES de limpiar la URL
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
   const hashType = hashParams.get('type');
-  const urlParams = new URLSearchParams(window.location.search);
-  history.replaceState(null, '', window.location.pathname);
 
-  // Implicit flow recovery: hash contiene type=recovery
+  // Implicit flow recovery: hash contiene type=recovery → limpiar y mostrar nueva contraseña
   if (hashType === 'recovery') {
     recoveryHandled = true;
+    history.replaceState(null, '', window.location.pathname);
     showNewPasswordView();
     return;
   }
 
-  // Restaurar sesión Supabase existente (incluye type=signup tras confirmar email)
+  // Restaurar sesión Supabase existente.
+  // IMPORTANTE: history.replaceState va DESPUÉS de getSession() para que Supabase
+  // pueda intercambiar el code PKCE del query param (flujo recovery / signup).
   const { data: { session: sbSess } } = await sb.auth.getSession();
+  history.replaceState(null, '', window.location.pathname);
 
   // Si onAuthStateChange ya gestionó PASSWORD_RECOVERY, no navegar
   if (recoveryHandled) return;

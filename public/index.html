@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-  <link rel="stylesheet" href="css/style.css?v=1.2.3" />
+  <link rel="stylesheet" href="css/style.css?v=1.3" />
 </head>
 <body>
 
@@ -54,7 +54,7 @@
     <div id="about-modal" class="modal">
       <div class="modal-box about-box">
         <div class="about-app-name">NovaCut</div>
-        <div class="about-version">v1.2.3</div>
+        <div class="about-version">v1.3</div>
         <img class="about-logo" src="https://novaia.cat/wp-content/uploads/2026/02/novaia_logo.png" alt="Novaia" />
         <p class="about-tagline">Created &amp; designed by</p>
         <a class="about-link" href="https://novaia.cat" target="_blank" rel="noopener">novaia.cat</a>
@@ -104,12 +104,23 @@
           </div>
           <div class="auth-field">
             <label class="auth-field-label">CONTRASEÑA</label>
-            <input id="login-password" type="password" class="auth-input" placeholder="••••••••" autocomplete="current-password" />
+            <div class="auth-input-wrap">
+              <input id="login-password" type="password" class="auth-input" placeholder="••••••••" autocomplete="current-password" />
+              <button type="button" class="auth-pw-toggle" data-target="login-password" tabindex="-1" aria-label="Mostrar contraseña"><span class="material-symbols-outlined">visibility</span></button>
+            </div>
           </div>
           <button class="auth-link-btn" id="forgot-password-btn">¿Olvidaste tu contraseña?</button>
           <button id="login-btn" class="auth-cta-btn">Entrar</button>
           <p id="login-msg" class="auth-msg"></p>
-          <p class="auth-switch">¿No tienes cuenta? <a href="#" id="go-register-btn">Regístrate</a></p>
+          <div class="auth-divider-wrap">
+            <span class="auth-divider-line"></span>
+            <span class="auth-divider-text">¿Nuevo aquí?</span>
+            <span class="auth-divider-line"></span>
+          </div>
+          <button id="go-register-btn" class="auth-secondary-btn">
+            <span class="material-symbols-outlined">person_add</span>
+            Crear cuenta
+          </button>
         </div>
       </div>
     </div>
@@ -142,11 +153,17 @@
           <div class="auth-fields-row">
             <div class="auth-field">
               <label class="auth-field-label">CONTRASEÑA</label>
-              <input id="reg-password" type="password" class="auth-input" placeholder="••••••••" maxlength="72" autocomplete="new-password" />
+              <div class="auth-input-wrap">
+                <input id="reg-password" type="password" class="auth-input" placeholder="••••••••" maxlength="72" autocomplete="new-password" />
+                <button type="button" class="auth-pw-toggle" data-target="reg-password" tabindex="-1" aria-label="Mostrar contraseña"><span class="material-symbols-outlined">visibility</span></button>
+              </div>
             </div>
             <div class="auth-field">
               <label class="auth-field-label">CONFIRMAR</label>
-              <input id="reg-password-confirm" type="password" class="auth-input" placeholder="••••••••" maxlength="72" autocomplete="new-password" />
+              <div class="auth-input-wrap">
+                <input id="reg-password-confirm" type="password" class="auth-input" placeholder="••••••••" maxlength="72" autocomplete="new-password" />
+                <button type="button" class="auth-pw-toggle" data-target="reg-password-confirm" tabindex="-1" aria-label="Mostrar contraseña"><span class="material-symbols-outlined">visibility</span></button>
+              </div>
             </div>
           </div>
           <label class="auth-rgpd">
@@ -199,11 +216,17 @@
         <div class="auth-form">
           <div class="auth-field">
             <label class="auth-field-label">NUEVA CONTRASEÑA</label>
-            <input id="new-password" type="password" class="auth-input" placeholder="••••••••" maxlength="72" autocomplete="new-password" />
+            <div class="auth-input-wrap">
+              <input id="new-password" type="password" class="auth-input" placeholder="••••••••" maxlength="72" autocomplete="new-password" />
+              <button type="button" class="auth-pw-toggle" data-target="new-password" tabindex="-1" aria-label="Mostrar contraseña"><span class="material-symbols-outlined">visibility</span></button>
+            </div>
           </div>
           <div class="auth-field">
             <label class="auth-field-label">CONFIRMAR CONTRASEÑA</label>
-            <input id="new-password-confirm" type="password" class="auth-input" placeholder="••••••••" maxlength="72" autocomplete="new-password" />
+            <div class="auth-input-wrap">
+              <input id="new-password-confirm" type="password" class="auth-input" placeholder="••••••••" maxlength="72" autocomplete="new-password" />
+              <button type="button" class="auth-pw-toggle" data-target="new-password-confirm" tabindex="-1" aria-label="Mostrar contraseña"><span class="material-symbols-outlined">visibility</span></button>
+            </div>
           </div>
           <button id="new-password-btn" class="auth-cta-btn">Guardar contraseña</button>
           <p id="new-password-msg" class="auth-msg"></p>
@@ -481,6 +504,10 @@
         </div>
       </div>
       <div class="profile-panel-divider"></div>
+      <button class="profile-panel-item" id="profile-change-barber-btn">
+        <span class="material-symbols-outlined">store</span>
+        <span>Cambiar peluquería</span>
+      </button>
       <button class="profile-panel-item" id="profile-push-btn">
         <span class="material-symbols-outlined">notifications</span>
         <span id="profile-push-label">Activar notificaciones</span>
@@ -490,6 +517,23 @@
         <span class="material-symbols-outlined">logout</span>
         <span>Cerrar sesion</span>
       </button>
+    </div>
+
+    <!-- ── Vista Seleccionar Peluquería ─────────────────────────── -->
+    <div id="view-select-barber">
+      <div class="select-barber-header">
+        <button id="select-barber-back-btn" class="select-barber-back" aria-label="Volver">
+          <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+      </div>
+      <div class="select-barber-hero">
+        <div class="select-barber-icon">
+          <span class="material-symbols-outlined">storefront</span>
+        </div>
+        <h1 class="select-barber-title">Elige tu peluquería</h1>
+        <p class="select-barber-sub">Selecciona la peluquería a la que quieres acceder</p>
+      </div>
+      <div id="barber-list" class="barber-list"></div>
     </div>
 
     <!-- Banner de actualizacion -->
@@ -506,6 +550,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="js/app.js?v=1.2.3"></script>
+  <script src="js/app.js?v=1.3"></script>
 </body>
 </html>

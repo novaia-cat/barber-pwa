@@ -2284,6 +2284,243 @@ body {
   white-space: pre-line;
 }
 
+/* ── Auth — toggle mostrar/ocultar contraseña ───────────────────── */
+.auth-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-input-wrap .auth-input {
+  padding-right: 40px;
+}
+
+.auth-pw-toggle {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-on-surface-var);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+}
+
+.auth-pw-toggle:hover { color: var(--color-on-surface); }
+
+.auth-pw-toggle .material-symbols-outlined {
+  font-size: 18px;
+  user-select: none;
+}
+
+/* ── Auth — botón Crear cuenta secundario (Login) ───────────────── */
+.auth-secondary-btn {
+  width: 100%;
+  padding: 13px 20px;
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.auth-secondary-btn:active,
+.auth-secondary-btn:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.auth-secondary-btn .material-symbols-outlined { font-size: 1.1rem; }
+
+.auth-divider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0;
+}
+
+.auth-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--color-outline);
+}
+
+.auth-divider-text {
+  font-size: 0.75rem;
+  color: var(--color-on-surface-var);
+  white-space: nowrap;
+}
+
+/* ── Vista Seleccionar Peluquería ───────────────────────────────── */
+#view-select-barber {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  inset: 0;
+  z-index: 99;
+  background: var(--color-bg);
+  overflow-y: auto;
+}
+
+#view-select-barber.active { display: flex; }
+
+.select-barber-header {
+  padding: 14px 16px 4px;
+  flex-shrink: 0;
+}
+
+.select-barber-back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-on-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.select-barber-back:hover { background: var(--color-surface-low); }
+.select-barber-back .material-symbols-outlined { font-size: 22px; }
+
+.select-barber-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 24px 24px;
+  gap: 8px;
+  text-align: center;
+}
+
+.select-barber-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-surface-low);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.select-barber-icon .material-symbols-outlined {
+  font-size: 2rem;
+  color: var(--color-secondary);
+}
+
+.select-barber-title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  letter-spacing: -0.02em;
+}
+
+.select-barber-sub {
+  font-size: 0.85rem;
+  color: var(--color-on-surface-var);
+  line-height: 1.5;
+}
+
+.barber-list {
+  padding: 4px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.barber-list-loading {
+  display: flex;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.barber-list-empty {
+  text-align: center;
+  color: var(--color-on-surface-var);
+  font-size: 0.88rem;
+  padding: 32px 0;
+}
+
+.barber-option-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 14px;
+  background: var(--color-surface-low);
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  width: 100%;
+  font-family: var(--font);
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.barber-option-card:hover { background: var(--color-surface-high); }
+
+.barber-option-card.active {
+  border-color: var(--color-secondary);
+  background: #fdf6f0;
+}
+
+.barber-option-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.barber-option-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.barber-option-logo .material-symbols-outlined {
+  font-size: 1.3rem;
+  color: var(--color-secondary);
+}
+
+.barber-option-name {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-on-surface);
+}
+
+.barber-option-check {
+  font-size: 1.3rem;
+  color: var(--color-secondary);
+  flex-shrink: 0;
+}
+
 /* ── Auth — Barbería brand ───────────────────────────────────────── */
 .auth-barber-brand {
   display: flex;
