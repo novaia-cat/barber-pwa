@@ -2,36 +2,15 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useBarberia } from '../lib/BarberiaContext'
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-const SUPABASE_SERVICE_ROLE = import.meta.env.VITE_SUPABASE_SERVICE_ROLE
-
 async function createAdminUser(email, password, barberia_id) {
-  // Crear usuario en Supabase Auth
-  const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_SERVICE_ROLE,
-      'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`
-    },
-    body: JSON.stringify({ email, password, email_confirm: true })
+  const { data: { session } } = await supabase.auth.getSession()
+  const res = await supabase.functions.invoke('create-admin-user', {
+    body: { email, password, barberia_id },
+    headers: { Authorization: `Bearer ${session.access_token}` }
   })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.msg ?? data.message ?? JSON.stringify(data))
-
-  // Vincular auth_user_id en barberias
-  const patch = await fetch(`${SUPABASE_URL}/rest/v1/barberias?id=eq.${barberia_id}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_SERVICE_ROLE,
-      'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`,
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({ auth_user_id: data.id })
-  })
-  if (!patch.ok) throw new Error('Usuario creado pero error al vincular barbería')
-  return data.id
+  if (res.error) throw new Error(res.error.message)
+  if (!res.data?.ok) throw new Error(res.data?.error ?? 'Error desconocido')
+  return res.data.user_id
 }
 
 const EMPTY_FORM = {
