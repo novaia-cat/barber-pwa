@@ -66,9 +66,15 @@ const IconLogout = () => (
   </svg>
 )
 
+const IconBarberias = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+  </svg>
+)
+
 export default function Sidebar({ user }) {
   const navigate = useNavigate()
-  const { barberia } = useBarberia()
+  const { barberia, isSuperAdmin, allBarberias, switchBarberia } = useBarberia()
 
   const nombreBarberia = barberia?.nombre ?? 'Artisan Cut'
   const logoUrl = barberia?.logo_url ?? null
@@ -88,9 +94,27 @@ export default function Sidebar({ user }) {
             ? <img src={logoUrl} alt="logo" style={{ width: 32, height: 32, borderRadius: 'var(--radius-md)', objectFit: 'cover' }} />
             : '✂'}
         </div>
-        <div>
-          <div className="sidebar-logo-text">{nombreBarberia}</div>
-          <div className="sidebar-logo-sub">Panel de gestión</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {isSuperAdmin && allBarberias.length > 0 ? (
+            <select
+              value={barberia?.id ?? ''}
+              onChange={e => switchBarberia(e.target.value)}
+              style={{
+                width: '100%', background: 'transparent', border: 'none', outline: 'none',
+                fontSize: 14, fontWeight: 700, color: 'var(--color-on-surface)',
+                cursor: 'pointer', padding: 0
+              }}
+            >
+              {allBarberias.map(b => (
+                <option key={b.id} value={b.id}>{b.nombre}</option>
+              ))}
+            </select>
+          ) : (
+            <div className="sidebar-logo-text">{nombreBarberia}</div>
+          )}
+          <div className="sidebar-logo-sub">
+            {isSuperAdmin ? '⚡ Super Admin' : 'Panel de gestión'}
+          </div>
         </div>
       </div>
 
@@ -122,6 +146,14 @@ export default function Sidebar({ user }) {
         <NavLink to="/ajustes" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
           <IconAjustes /> Ajustes
         </NavLink>
+        {isSuperAdmin && (
+          <>
+            <div style={{ height: 1, background: 'var(--color-outline)', margin: '8px 0', opacity: 0.5 }} />
+            <NavLink to="/barberias" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+              <IconBarberias /> Barberias
+            </NavLink>
+          </>
+        )}
       </nav>
 
       <div className="sidebar-footer">
@@ -135,7 +167,7 @@ export default function Sidebar({ user }) {
           <IconLogout /> Cerrar sesión
         </button>
         <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-on-surface-var)', opacity: 0.5, paddingTop: 8 }}>
-          v1.8.1
+          v1.9
         </div>
       </div>
     </aside>

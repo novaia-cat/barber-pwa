@@ -13,9 +13,10 @@ import Horario from './pages/Horario'
 import Ajustes from './pages/Ajustes'
 import Cierres from './pages/Cierres'
 import Notificaciones from './pages/Notificaciones'
+import Barberias from './pages/Barberias'
 
 function ProtectedContent({ user }) {
-  const { barberiaId, loading } = useBarberia()
+  const { barberiaId, loading, isSuperAdmin } = useBarberia()
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--color-on-surface-var)' }}>
@@ -23,7 +24,7 @@ function ProtectedContent({ user }) {
     </div>
   )
 
-  if (!barberiaId) return (
+  if (!barberiaId && !isSuperAdmin) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, height: '100vh' }}>
       <p style={{ color: 'var(--color-error)' }}>Este usuario no tiene acceso a ninguna barbería.</p>
       <button className="btn-ghost" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
@@ -44,7 +45,8 @@ function ProtectedContent({ user }) {
           <Route path="/cierres" element={<Cierres />} />
           <Route path="/notificaciones" element={<Notificaciones />} />
           <Route path="/ajustes" element={<Ajustes />} />
-          <Route path="*" element={<Navigate to="/calendario" replace />} />
+          <Route path="/barberias" element={<Barberias />} />
+          <Route path="*" element={<Navigate to={barberiaId ? "/calendario" : "/barberias"} replace />} />
         </Routes>
       </main>
     </div>
