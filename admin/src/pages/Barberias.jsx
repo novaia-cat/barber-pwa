@@ -2,7 +2,37 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useBarberia } from '../lib/BarberiaContext'
 
-const N8N_CREATE_ADMIN_URL = 'https://n8n.novaia.cat/webhook/barber-create-admin-user'
+const SUPABASE_URL = 'https://cynnuucihcniqusomgol.supabase.co'
+const SUPABASE_SERVICE_ROLE = 'REDACTED_ROTATE_KEY'
+
+async function createAdminUser(email, password, barberia_id) {
+  // Crear usuario en Supabase Auth
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_SERVICE_ROLE,
+      'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`
+    },
+    body: JSON.stringify({ email, password, email_confirm: true })
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.msg ?? data.message ?? JSON.stringify(data))
+
+  // Vincular auth_user_id en barberias
+  const patch = await fetch(`${SUPABASE_URL}/rest/v1/barberias?id=eq.${barberia_id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_SERVICE_ROLE,
+      'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE}`,
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({ auth_user_id: data.id })
+  })
+  if (!patch.ok) throw new Error('Usuario creado pero error al vincular barbería')
+  return data.id
+}
 
 const EMPTY_FORM = {
   id: '', nombre: '', direccion: '', telefono: '',
@@ -92,14 +122,8 @@ function EditRow({ b, onSaved, onCancel }) {
     if (form.admin_email.trim() && form.admin_password.trim()) {
       if (form.admin_password.trim().length < 8) { setErr('La contraseña debe tener al menos 8 caracteres.'); setSaving(false); return }
       try {
-        const res = await fetch(N8N_CREATE_ADMIN_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: form.admin_email.trim(), password: form.admin_password.trim(), barberia_id: b.id })
-        })
-        const data = await res.json()
-        if (!data.ok) { setErr(`Guardado pero error al crear usuario: ${data.error}`); setSaving(false); return }
-      } catch (e) { setErr(`Guardado pero error de red: ${e.message}`); setSaving(false); return }
+        await createAdminUser(form.admin_email.trim(), form.admin_password.trim(), b.id)
+      } catch (e) { setErr(`Guardado pero error al crear usuario: ${e.message}`); setSaving(false); return }
     }
 
     onSaved({ ...b, ...updates })
@@ -171,25 +195,10 @@ export default function Barberias() {
         return
       }
       try {
-        const res = await fetch(N8N_CREATE_ADMIN_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: form.admin_email.trim(),
-            password: form.admin_password.trim(),
-            barberia_id: row.id
-          })
-        })
-        const data = await res.json()
-        if (!data.ok) {
-          setMsg({ type: 'err', text: `Barbería creada pero error al crear usuario: ${data.error}` })
-          setSaving(false)
-          return
-        }
-        // Actualizar fila local con auth_user_id si viene en la respuesta
-        if (data.user_id) row.auth_user_id = data.user_id
+        const userId = await createAdminUser(form.admin_email.trim(), form.admin_password.trim(), row.id)
+        row.auth_user_id = userId
       } catch (e) {
-        setMsg({ type: 'err', text: `Barbería creada pero error de red al crear usuario: ${e.message}` })
+        setMsg({ type: 'err', text: `Barbería creada pero error al crear usuario: ${e.message}` })
         setSaving(false)
         return
       }
