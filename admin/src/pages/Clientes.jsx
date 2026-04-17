@@ -55,11 +55,17 @@ export default function Clientes() {
 
   async function load() {
     setLoading(true)
+    const { data: citasData } = await supabase
+      .from('citas')
+      .select('cliente_id')
+      .eq('barberia_id', barberiaId)
+    const ids = [...new Set((citasData ?? []).map(c => c.cliente_id).filter(Boolean))]
+    if (!ids.length) { setClientes([]); setLoading(false); return }
     const { data } = await supabase
       .from('clientes')
       .select('id, nombre, apellido, telefono, email, fecha_registro')
-      .eq('barberia_id', barberiaId)
-      .order('fecha_registro', { ascending: false })
+      .in('id', ids)
+      .order('nombre')
     setClientes(data ?? [])
     setLoading(false)
   }
@@ -98,13 +104,12 @@ export default function Clientes() {
     setError('')
     if (modal === 'new') {
       const { error: err } = await supabase.from('clientes').insert([{
-        barberia_id: barberiaId,
         nombre: form.nombre.trim(),
         apellido: form.apellido.trim() || null,
         telefono,
         email: form.email.trim() || null,
       }])
-      if (err) setError(err.code === '23505' ? 'Ya existe un cliente con ese teléfono en esta barbería.' : err.message)
+      if (err) setError(err.code === '23505' ? 'Ya existe un cliente con ese teléfono.' : err.message)
       else { setModal(null); load() }
     } else {
       const { error: err } = await supabase.from('clientes').update({
@@ -112,8 +117,8 @@ export default function Clientes() {
         apellido: form.apellido.trim() || null,
         telefono,
         email: form.email.trim() || null,
-      }).eq('id', editId).eq('barberia_id', barberiaId)
-      if (err) setError(err.code === '23505' ? 'Ya existe un cliente con ese teléfono en esta barbería.' : err.message)
+      }).eq('id', editId)
+      if (err) setError(err.code === '23505' ? 'Ya existe un cliente con ese teléfono.' : err.message)
       else { setModal(null); load() }
     }
     setSaving(false)
@@ -121,7 +126,7 @@ export default function Clientes() {
 
   async function handleDelete(id) {
     if (!confirm('¿Borrar este cliente?')) return
-    await supabase.from('clientes').delete().eq('id', id).eq('barberia_id', barberiaId)
+    await supabase.from('clientes').delete().eq('id', id)
     load()
   }
 

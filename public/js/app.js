@@ -1282,12 +1282,10 @@ regBtn.addEventListener('click', async () => {
   regBtn.disabled = true;
   regBtn.textContent = 'Creando cuenta...';
 
-  // Verificar si el teléfono ya existe en esta barbería via RPC function.
-  // Requiere: CREATE FUNCTION public.check_phone_exists(...) SECURITY DEFINER + GRANT TO anon
-  // Si la función no existe o falla → continuamos sin bloquear el registro.
+  // Verificar si el teléfono ya existe globalmente via RPC function.
   try {
     const { data: phoneExists, error: rpcErr } = await sb
-      .rpc('check_phone_exists', { p_telefono: telefono, p_barberia_id: barberId });
+      .rpc('check_phone_exists', { p_telefono: telefono });
     if (!rpcErr && phoneExists === true) {
       msgEl.textContent = 'Este número de teléfono ya está registrado. Inicia sesión o usa otro número.';
       msgEl.classList.add('auth-msg--error');
