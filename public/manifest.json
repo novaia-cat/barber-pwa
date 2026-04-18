@@ -1,6 +1,6 @@
 {
-  "name": "NovaCut",
-  "short_name": "NovaCut",
+  "name": "LaPelu",
+  "short_name": "LaPelu",
   "description": "Reserva tu cita en la barbería",
   "start_url": "/",
   "display": "standalone",
