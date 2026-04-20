@@ -24,6 +24,18 @@ const IconMenu = () => (
 function ProtectedContent({ user }) {
   const { barberiaId, loading, isSuperAdmin, barberia } = useBarberia()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [headerHidden, setHeaderHidden] = useState(false)
+
+  useEffect(() => {
+    let lastY = window.scrollY
+    function onScroll() {
+      const y = window.scrollY
+      setHeaderHidden(y > lastY && y > 40)
+      lastY = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--color-on-surface-var)' }}>
@@ -40,11 +52,11 @@ function ProtectedContent({ user }) {
 
   return (
     <>
-      <header className="mobile-header">
-        <span className="mobile-header-title">{barberia?.nombre ?? 'Admin'}</span>
+      <header className={`mobile-header${headerHidden ? ' mobile-header--hidden' : ''}`}>
         <button className="hamburger-btn" onClick={() => setSidebarOpen(true)} aria-label="Abrir menú">
           <IconMenu />
         </button>
+        <span className="mobile-header-title">{barberia?.nombre ?? 'Admin'}</span>
       </header>
       <div className="admin-layout">
         <Sidebar user={user} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
