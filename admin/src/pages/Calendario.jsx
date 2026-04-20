@@ -137,6 +137,8 @@ export default function Calendario() {
 
   useEffect(() => { if (barberiaId) loadEvents(mostrarCanceladas) }, [mostrarCanceladas, barberiaId])
 
+  const isMobile = window.innerWidth < 768
+
   return (
     <div>
       <div className="page-header">
@@ -157,12 +159,12 @@ export default function Calendario() {
           : <FullCalendar
           ref={calendarRef}
           plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
+          initialView={isMobile ? 'timeGridDay' : 'timeGridWeek'}
           locale="es"
           headerToolbar={{
             left: 'prev,next,today',
             center: 'title',
-            right: 'dayGridMonth timeGridWeek timeGridDay',
+            right: isMobile ? 'timeGridDay' : 'dayGridMonth timeGridWeek timeGridDay',
           }}
           buttonText={{ today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' }}
           slotMinTime="08:00:00"

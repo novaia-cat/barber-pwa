@@ -20,8 +20,8 @@ const IconDelete = () => (
 
 function Modal({ title, onClose, onSave, saving, children }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
-      <div style={{ background: '#fff', borderRadius: 'var(--radius-lg)', padding: 32, width: '100%', maxWidth: 440, display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="modal-overlay">
+      <div className="modal-box">
         <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{title}</h2>
         {children}
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>

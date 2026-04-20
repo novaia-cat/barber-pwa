@@ -72,7 +72,7 @@ const IconBarberias = () => (
   </svg>
 )
 
-export default function Sidebar({ user }) {
+export default function Sidebar({ user, isOpen, onClose }) {
   const navigate = useNavigate()
   const { barberia, isSuperAdmin, allBarberias, switchBarberia } = useBarberia()
 
@@ -87,7 +87,9 @@ export default function Sidebar({ user }) {
   const initials = user?.email?.slice(0, 2).toUpperCase() ?? '?'
 
   return (
-    <aside className="sidebar">
+    <>
+      {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
+      <aside className={`sidebar${isOpen ? ' sidebar-open' : ''}`}>
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">
           {logoUrl
@@ -119,37 +121,37 @@ export default function Sidebar({ user }) {
       </div>
 
       <nav className="sidebar-nav">
-        <NavLink to="/calendario" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+        <NavLink to="/calendario" onClick={onClose} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
           <IconCalendar /> Calendario
         </NavLink>
-        <NavLink to="/citas" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+        <NavLink to="/citas" onClick={onClose} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
           <IconCitas /> Citas
         </NavLink>
-        <NavLink to="/clientes" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+        <NavLink to="/clientes" onClick={onClose} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
           <IconClientes /> Clientes
         </NavLink>
-        <NavLink to="/servicios" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+        <NavLink to="/servicios" onClick={onClose} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
           <IconServicios /> Servicios
         </NavLink>
-        <NavLink to="/equipo" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+        <NavLink to="/equipo" onClick={onClose} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
           <IconEquipo /> Equipo
         </NavLink>
-        <NavLink to="/horario" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+        <NavLink to="/horario" onClick={onClose} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
           <IconHorario /> Horario
         </NavLink>
-        <NavLink to="/cierres" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+        <NavLink to="/cierres" onClick={onClose} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
           <IconCierres /> Cierres
         </NavLink>
-        <NavLink to="/notificaciones" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+        <NavLink to="/notificaciones" onClick={onClose} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
           <IconBell /> Notificaciones
         </NavLink>
-        <NavLink to="/ajustes" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+        <NavLink to="/ajustes" onClick={onClose} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
           <IconAjustes /> Ajustes
         </NavLink>
         {isSuperAdmin && (
           <>
             <div style={{ height: 1, background: 'var(--color-outline)', margin: '8px 0', opacity: 0.5 }} />
-            <NavLink to="/barberias" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
+            <NavLink to="/barberias" onClick={onClose} className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}>
               <IconBarberias /> Barberias
             </NavLink>
           </>
@@ -171,5 +173,6 @@ export default function Sidebar({ user }) {
         </div>
       </div>
     </aside>
+    </>
   )
 }

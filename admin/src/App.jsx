@@ -15,8 +15,15 @@ import Cierres from './pages/Cierres'
 import Notificaciones from './pages/Notificaciones'
 import Barberias from './pages/Barberias'
 
+const IconMenu = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+)
+
 function ProtectedContent({ user }) {
-  const { barberiaId, loading, isSuperAdmin } = useBarberia()
+  const { barberiaId, loading, isSuperAdmin, barberia } = useBarberia()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--color-on-surface-var)' }}>
@@ -32,24 +39,32 @@ function ProtectedContent({ user }) {
   )
 
   return (
-    <div className="admin-layout">
-      <Sidebar user={user} />
-      <main className="main-content">
-        <Routes>
-          <Route path="/calendario" element={<Calendario />} />
-          <Route path="/citas" element={<Citas />} />
-          <Route path="/clientes" element={<Clientes />} />
-          <Route path="/servicios" element={<Servicios />} />
-          <Route path="/equipo" element={<Equipo />} />
-          <Route path="/horario" element={<Horario />} />
-          <Route path="/cierres" element={<Cierres />} />
-          <Route path="/notificaciones" element={<Notificaciones />} />
-          <Route path="/ajustes" element={<Ajustes />} />
-          <Route path="/barberias" element={<Barberias />} />
-          <Route path="*" element={<Navigate to={barberiaId ? "/calendario" : "/barberias"} replace />} />
-        </Routes>
-      </main>
-    </div>
+    <>
+      <header className="mobile-header">
+        <span className="mobile-header-title">{barberia?.nombre ?? 'Admin'}</span>
+        <button className="hamburger-btn" onClick={() => setSidebarOpen(true)} aria-label="Abrir menú">
+          <IconMenu />
+        </button>
+      </header>
+      <div className="admin-layout">
+        <Sidebar user={user} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <main className="main-content">
+          <Routes>
+            <Route path="/calendario" element={<Calendario />} />
+            <Route path="/citas" element={<Citas />} />
+            <Route path="/clientes" element={<Clientes />} />
+            <Route path="/servicios" element={<Servicios />} />
+            <Route path="/equipo" element={<Equipo />} />
+            <Route path="/horario" element={<Horario />} />
+            <Route path="/cierres" element={<Cierres />} />
+            <Route path="/notificaciones" element={<Notificaciones />} />
+            <Route path="/ajustes" element={<Ajustes />} />
+            <Route path="/barberias" element={<Barberias />} />
+            <Route path="*" element={<Navigate to={barberiaId ? "/calendario" : "/barberias"} replace />} />
+          </Routes>
+        </main>
+      </div>
+    </>
   )
 }
 
