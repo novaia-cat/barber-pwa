@@ -169,7 +169,7 @@ export default function Sidebar({ user, isOpen, onClose }) {
           <IconLogout /> Cerrar sesión
         </button>
         <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-on-surface-var)', opacity: 0.5, paddingTop: 8 }}>
-          v1.9.6
+          v2.0.0
         </div>
       </div>
     </aside>
