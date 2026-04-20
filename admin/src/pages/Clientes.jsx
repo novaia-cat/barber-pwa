@@ -43,7 +43,7 @@ function normalizePhone(value) {
 }
 
 export default function Clientes() {
-  const { barberiaId } = useBarberia()
+  const { barberiaId, isSuperAdmin } = useBarberia()
   const [clientes, setClientes] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -55,15 +55,33 @@ export default function Clientes() {
 
   async function load() {
     setLoading(true)
-    const { data } = await supabase
-      .from('clientes')
-      .select('id, nombre, apellido, telefono, email, fecha_registro')
-      .order('nombre')
-    setClientes(data ?? [])
+    if (isSuperAdmin) {
+      // SuperAdmin ve todos los clientes
+      const { data } = await supabase
+        .from('clientes')
+        .select('id, nombre, apellido, telefono, email, fecha_registro')
+        .order('nombre')
+      setClientes(data ?? [])
+    } else {
+      // Admin normal: clientes con citas en su barbería + creados manualmente aquí
+      const { data: citasData } = await supabase
+        .from('citas')
+        .select('cliente_id')
+        .eq('barberia_id', barberiaId)
+      const idsFromCitas = [...new Set((citasData ?? []).map(c => c.cliente_id).filter(Boolean))]
+      const orParts = [`created_by_barberia_id.eq.${barberiaId}`]
+      if (idsFromCitas.length > 0) orParts.push(`id.in.(${idsFromCitas.join(',')})`)
+      const { data } = await supabase
+        .from('clientes')
+        .select('id, nombre, apellido, telefono, email, fecha_registro')
+        .or(orParts.join(','))
+        .order('nombre')
+      setClientes(data ?? [])
+    }
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { if (isSuperAdmin || barberiaId) load() }, [barberiaId, isSuperAdmin])
 
   const filtered = clientes.filter(c => {
     const q = search.toLowerCase()
@@ -101,6 +119,7 @@ export default function Clientes() {
         apellido: form.apellido.trim() || null,
         telefono,
         email: form.email.trim() || null,
+        created_by_barberia_id: barberiaId,
       }])
       if (err) setError(err.code === '23505' ? 'Ya existe un cliente con ese teléfono.' : err.message)
       else { setModal(null); load() }
