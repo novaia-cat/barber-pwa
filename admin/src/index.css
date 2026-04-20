@@ -685,7 +685,8 @@ tbody td {
   .mobile-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 10px;
     position: fixed;
     top: 0;
     left: 0;
