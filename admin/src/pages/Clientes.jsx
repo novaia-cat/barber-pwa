@@ -55,22 +55,15 @@ export default function Clientes() {
 
   async function load() {
     setLoading(true)
-    const { data: citasData } = await supabase
-      .from('citas')
-      .select('cliente_id')
-      .eq('barberia_id', barberiaId)
-    const ids = [...new Set((citasData ?? []).map(c => c.cliente_id).filter(Boolean))]
-    if (!ids.length) { setClientes([]); setLoading(false); return }
     const { data } = await supabase
       .from('clientes')
       .select('id, nombre, apellido, telefono, email, fecha_registro')
-      .in('id', ids)
       .order('nombre')
     setClientes(data ?? [])
     setLoading(false)
   }
 
-  useEffect(() => { if (barberiaId) load() }, [barberiaId])
+  useEffect(() => { load() }, [])
 
   const filtered = clientes.filter(c => {
     const q = search.toLowerCase()
