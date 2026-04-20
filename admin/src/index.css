@@ -672,7 +672,7 @@ tbody td {
    RESPONSIVE — MOBILE  ≤ 768px
    Solo layout/maquetación. Sin cambios de lógica.
    ═══════════════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
 
   /* ── Layout ─────────────────────────────────────────────────── */
   .main-content {

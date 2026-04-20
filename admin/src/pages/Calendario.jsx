@@ -137,7 +137,7 @@ export default function Calendario() {
 
   useEffect(() => { if (barberiaId) loadEvents(mostrarCanceladas) }, [mostrarCanceladas, barberiaId])
 
-  const isMobile = window.innerWidth < 768
+  const isMobile = window.innerWidth < 1024
 
   return (
     <div>
