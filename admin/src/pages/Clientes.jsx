@@ -47,6 +47,7 @@ export default function Clientes() {
   const [clientes, setClientes] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [filterByBarberia, setFilterByBarberia] = useState(false)
   const [modal, setModal] = useState(null) // null | 'new' | 'edit'
   const [form, setForm] = useState(EMPTY)
   const [editId, setEditId] = useState(null)
@@ -55,7 +56,7 @@ export default function Clientes() {
 
   async function load() {
     setLoading(true)
-    if (isSuperAdmin) {
+    if (isSuperAdmin && !filterByBarberia) {
       // SuperAdmin ve todos los clientes
       const { data } = await supabase
         .from('clientes')
@@ -81,7 +82,7 @@ export default function Clientes() {
     setLoading(false)
   }
 
-  useEffect(() => { if (isSuperAdmin || barberiaId) load() }, [barberiaId, isSuperAdmin])
+  useEffect(() => { if (isSuperAdmin || barberiaId) load() }, [barberiaId, isSuperAdmin, filterByBarberia])
 
   const filtered = clientes.filter(c => {
     const q = search.toLowerCase()
@@ -157,6 +158,17 @@ export default function Clientes() {
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
+        {isSuperAdmin && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--color-on-surface-var)', cursor: 'pointer', userSelect: 'none' }}>
+            <input
+              type="checkbox"
+              checked={filterByBarberia}
+              onChange={e => setFilterByBarberia(e.target.checked)}
+              style={{ width: 16, height: 16, cursor: 'pointer' }}
+            />
+            Solo barbería seleccionada
+          </label>
+        )}
         <span style={{ fontSize: 13, color: 'var(--color-on-surface-var)' }}>
           {filtered.length} cliente{filtered.length !== 1 ? 's' : ''}
         </span>
