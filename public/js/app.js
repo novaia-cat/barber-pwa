@@ -619,7 +619,7 @@ async function loadBarberList() {
   try {
     const { data: barberias, error } = await sb
       .from('barberias')
-      .select('id, nombre, logo_url')
+      .select('id, nombre, logo_url, imagen_url, direccion')
       .order('nombre');
 
     if (error || !barberias || !barberias.length) {
@@ -631,16 +631,34 @@ async function loadBarberList() {
     barberias.forEach(b => {
       const card = document.createElement('button');
       card.className = 'barber-option-card' + (b.id === barberId ? ' active' : '');
+
+      const bgStyle = b.imagen_url
+        ? `style="background-image:url('${b.imagen_url}')"`
+        : '';
+
       const logoHtml = b.logo_url
         ? `<img src="${b.logo_url}" alt="${b.nombre || b.id}" loading="lazy">`
         : `<span class="material-symbols-outlined">content_cut</span>`;
+
       const checkHtml = b.id === barberId
         ? `<span class="material-symbols-outlined barber-option-check">check_circle</span>`
         : '';
+
+      const addressHtml = b.direccion
+        ? `<p class="barber-option-address"><span class="material-symbols-outlined">location_on</span>${b.direccion}</p>`
+        : '';
+
       card.innerHTML = `
-        <div class="barber-option-logo">${logoHtml}</div>
-        <span class="barber-option-name">${b.nombre || b.id}</span>
-        ${checkHtml}
+        <div class="barber-option-bg" ${bgStyle}></div>
+        <div class="barber-option-gradient"></div>
+        <div class="barber-option-content">
+          <div class="barber-option-logo">${logoHtml}</div>
+          <div class="barber-option-info">
+            <span class="barber-option-name">${b.nombre || b.id}</span>
+            ${addressHtml}
+          </div>
+          ${checkHtml}
+        </div>
       `;
       card.addEventListener('click', () => {
         localStorage.setItem('selected_barber_id', b.id);
