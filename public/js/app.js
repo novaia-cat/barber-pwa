@@ -1562,7 +1562,7 @@ if ('serviceWorker' in navigator && !isLocalhost) {
 
 // ── Init ──────────────────────────────────────────────────────────
 (async function init() {
-  await loadConfig();
+  const [,] = await Promise.all([loadConfig(), new Promise(r => setTimeout(r, 2000))]);
 
   // Ocultar pantalla de carga con fade-out
   viewLoading.classList.add('hidden');
