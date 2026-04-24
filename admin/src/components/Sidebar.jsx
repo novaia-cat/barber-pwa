@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useBarberia } from '../lib/BarberiaContext'
+import { version } from '../../package.json'
 
 const IconCalendar = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -169,7 +170,7 @@ export default function Sidebar({ user, isOpen, onClose }) {
           <IconLogout /> Cerrar sesión
         </button>
         <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-on-surface-var)', opacity: 0.5, paddingTop: 8 }}>
-          v2.1.0
+          v{version}
         </div>
       </div>
     </aside>
