@@ -41,7 +41,7 @@ function getBarberId() {
   return parts.length >= 3 ? parts[0] : 'barber';
 }
 
-const barberId = getBarberId();
+let barberId = getBarberId();
 let session = null; // populated from Supabase on init
 
 // DOM refs
@@ -662,7 +662,8 @@ async function loadBarberList() {
       `;
       card.addEventListener('click', () => {
         localStorage.setItem('selected_barber_id', b.id);
-        location.reload();
+        barberId = b.id;
+        window.location.href = window.location.pathname;
       });
       list.appendChild(card);
     });
