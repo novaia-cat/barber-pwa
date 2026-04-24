@@ -660,13 +660,10 @@ async function loadBarberList() {
           ${checkHtml}
         </div>
       `;
-      card.addEventListener('click', async () => {
+      card.addEventListener('click', () => {
         localStorage.setItem('selected_barber_id', b.id);
         barberId = b.id;
-        servicesCache = [];
-        await loadConfig();
-        renderServiceCards();
-        showHomeView();
+        location.reload();
       });
       list.appendChild(card);
     });
