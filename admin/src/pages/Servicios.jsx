@@ -18,8 +18,8 @@ const IconDelete = () => (
 
 function Modal({ title, onClose, onSave, saving, children }) {
   return (
-    <div className="modal-overlay">
-      <div className="modal-box">
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
+      <div style={{ background: '#fff', borderRadius: 'var(--radius-lg)', padding: 32, width: '100%', maxWidth: 440, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700 }}>{title}</h2>
         {children}
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
@@ -56,17 +56,8 @@ export default function Servicios() {
 
   useEffect(() => { if (barberiaId) load() }, [barberiaId])
 
-  function generateNextId() {
-    const nums = servicios
-      .map(s => s.id.match(/^SRV(\d+)$/i))
-      .filter(Boolean)
-      .map(m => parseInt(m[1], 10))
-    const next = nums.length ? Math.max(...nums) + 1 : 1
-    return 'SRV' + String(next).padStart(3, '0')
-  }
-
   function openNew() {
-    setForm({ ...EMPTY, id: generateNextId() })
+    setForm(EMPTY)
     setEditId(null)
     setError('')
     setModal('new')
@@ -81,6 +72,7 @@ export default function Servicios() {
 
   async function handleSave() {
     if (!form.nombre.trim()) { setError('El nombre es obligatorio.'); return }
+    if (!form.id.trim() && modal === 'new') { setError('El ID es obligatorio (ej: SRV004).'); return }
     setSaving(true)
     setError('')
 
@@ -101,7 +93,7 @@ export default function Servicios() {
         duracion_min: Number(form.duracion_min),
         precio_eur: Number(form.precio_eur),
         activo: form.activo,
-      }).eq('id', editId)
+      }).eq('barberia_id', barberiaId).eq('id', editId)
       if (err) setError(err.message)
       else { setModal(null); load() }
     }
@@ -109,13 +101,13 @@ export default function Servicios() {
   }
 
   async function toggleActivo(s) {
-    await supabase.from('servicios').update({ activo: !s.activo }).eq('id', s.id)
+    await supabase.from('servicios').update({ activo: !s.activo }).eq('barberia_id', barberiaId).eq('id', s.id)
     load()
   }
 
   async function handleDelete(id) {
     if (!confirm('¿Borrar este servicio? Las citas existentes no se verán afectadas.')) return
-    await supabase.from('servicios').delete().eq('id', id)
+    await supabase.from('servicios').delete().eq('barberia_id', barberiaId).eq('id', id)
     load()
   }
 
@@ -181,6 +173,12 @@ export default function Servicios() {
         >
           {error && <div className="error-msg">{error}</div>}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {modal === 'new' && (
+              <div className="form-group">
+                <label className="form-label">ID (ej: SRV004) *</label>
+                <input className="input" value={form.id} onChange={e => setForm(f => ({ ...f, id: e.target.value }))} placeholder="SRV004" />
+              </div>
+            )}
             <div className="form-group">
               <label className="form-label">Nombre *</label>
               <input className="input" value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre del servicio" />
