@@ -50,11 +50,21 @@ function Modal({ title, onClose, onSave, saving, children }) {
   )
 }
 
+const FALLBACK_SLOTS = Array.from({ length: 27 }, (_, i) => {
+  const mins = 8 * 60 + i * 30
+  return String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0')
+})
+
+function toMins(t) { const [h, m] = t.slice(0, 5).split(':').map(Number); return h * 60 + m }
+function fromMins(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0') }
+
 export default function Citas() {
   const { barberiaId } = useBarberia()
   const [citas, setCitas] = useState([])
   const [clientes, setClientes] = useState([])
   const [servicios, setServicios] = useState([])
+  const [peluqueros, setPeluqueros] = useState([])
+  const [slots, setSlots] = useState(FALLBACK_SLOTS)
   const [loading, setLoading] = useState(true)
   const [filtroEstado, setFiltroEstado] = useState('todas')
   const [filtroFecha, setFiltroFecha] = useState('todas')
@@ -66,13 +76,15 @@ export default function Citas() {
 
   async function load() {
     setLoading(true)
-    const [{ data: c }, { data: sv }] = await Promise.all([
-      supabase.from('citas').select('id, cliente_id, servicio_id, fecha_hora, duracion_min, estado').eq('barberia_id', barberiaId).order('fecha_hora', { ascending: false }),
+    const [{ data: c }, { data: sv }, { data: pl }] = await Promise.all([
+      supabase.from('citas').select('id, cliente_id, peluquero_id, servicio_id, fecha_hora, duracion_min, estado').eq('barberia_id', barberiaId).order('fecha_hora', { ascending: false }),
       supabase.from('servicios').select('id, nombre').eq('barberia_id', barberiaId),
+      supabase.from('peluqueros').select('id, nombre').eq('barberia_id', barberiaId).eq('activo', true).order('nombre'),
     ])
     const citas = c ?? []
     setCitas(citas)
     setServicios(sv ?? [])
+    setPeluqueros(pl ?? [])
     const ids = [...new Set(citas.map(x => x.cliente_id).filter(Boolean))]
     if (ids.length) {
       const { data: cl } = await supabase.from('clientes').select('id, nombre, apellido').in('id', ids)
@@ -84,6 +96,26 @@ export default function Citas() {
   }
 
   useEffect(() => { if (barberiaId) load() }, [barberiaId])
+
+  useEffect(() => {
+    if (!modal || !form.peluquero_id || !form.fecha) { setSlots(FALLBACK_SLOTS); return }
+    const jsDay = new Date(form.fecha + 'T12:00:00').getDay()
+    const dbDay = jsDay === 0 ? 7 : jsDay
+    supabase.from('horarios').select('hora_inicio, hora_fin')
+      .eq('peluquero_id', form.peluquero_id).eq('dia_semana', dbDay)
+      .then(({ data }) => {
+        if (!data || data.length === 0) { setSlots(FALLBACK_SLOTS); return }
+        const computed = []
+        const sorted = [...data].sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio))
+        sorted.forEach(({ hora_inicio, hora_fin }) => {
+          let cur = toMins(hora_inicio)
+          const end = toMins(hora_fin)
+          while (cur < end) { computed.push(fromMins(cur)); cur += 30 }
+        })
+        if (form.hora && !computed.includes(form.hora)) computed.push(form.hora)
+        setSlots(computed.length > 0 ? computed : FALLBACK_SLOTS)
+      })
+  }, [form.peluquero_id, form.fecha, modal])
 
   function clienteNombre(id) {
     const c = clientes.find(c => c.id === id)
@@ -112,29 +144,32 @@ export default function Citas() {
   })
 
   function openEdit(c) {
-    const fechaLocal = c.fecha_hora ? c.fecha_hora.replace(/([+-]\d{2}:\d{2}|Z)$/, '').slice(0, 16) : ''
-    setForm({ cliente_id: c.cliente_id, servicio_id: c.servicio_id, fecha_hora: fechaLocal, duracion_min: c.duracion_min, estado: c.estado })
+    const stripped = c.fecha_hora ? c.fecha_hora.replace(/([+-]\d{2}:\d{2}|Z)$/, '') : ''
+    const fecha = stripped.slice(0, 10)
+    const hora  = stripped.slice(11, 16)
+    setForm({ cliente_id: c.cliente_id, peluquero_id: c.peluquero_id, servicio_id: c.servicio_id, fecha, hora, duracion_min: c.duracion_min, estado: c.estado })
     setEditId(c.id)
     setError('')
     setModal('edit')
   }
 
   function openNew() {
-    setForm({ cliente_id: clientes[0]?.id ?? '', servicio_id: servicios[0]?.id ?? '', fecha_hora: '', duracion_min: 30, estado: 'confirmada' })
+    setForm({ cliente_id: clientes[0]?.id ?? '', peluquero_id: peluqueros[0]?.id ?? '', servicio_id: servicios[0]?.id ?? '', fecha: '', hora: '', duracion_min: 30, estado: 'confirmada' })
     setEditId(null)
     setError('')
     setModal('new')
   }
 
   async function handleSave() {
-    if (!form.fecha_hora) { setError('La fecha y hora son obligatorias.'); return }
+    if (!form.fecha || !form.hora) { setError('La fecha y hora son obligatorias.'); return }
     setSaving(true)
     setError('')
 
     const payload = {
       cliente_id: form.cliente_id,
+      peluquero_id: form.peluquero_id,
       servicio_id: form.servicio_id,
-      fecha_hora: form.fecha_hora + ':00+00:00',
+      fecha_hora: form.fecha + 'T' + form.hora + ':00+00:00',
       duracion_min: Number(form.duracion_min),
       estado: form.estado,
     }
@@ -262,6 +297,14 @@ export default function Citas() {
               </select>
             </div>
             <div className="form-group">
+              <label className="form-label">Peluquero</label>
+              <select className="input" value={form.peluquero_id} onChange={e => setForm(f => ({ ...f, peluquero_id: e.target.value }))}>
+                {peluqueros.map(p => (
+                  <option key={p.id} value={p.id}>{p.nombre}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
               <label className="form-label">Servicio</label>
               <select className="input" value={form.servicio_id} onChange={e => setForm(f => ({ ...f, servicio_id: e.target.value }))}>
                 {servicios.map(s => (
@@ -271,8 +314,15 @@ export default function Citas() {
             </div>
             <div style={{ display: 'flex', gap: 12 }}>
               <div className="form-group" style={{ flex: 2 }}>
-                <label className="form-label">Fecha y hora *</label>
-                <input className="input" type="datetime-local" value={form.fecha_hora} onChange={e => setForm(f => ({ ...f, fecha_hora: e.target.value }))} />
+                <label className="form-label">Fecha *</label>
+                <input className="input" type="date" value={form.fecha} onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} />
+              </div>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label className="form-label">Hora *</label>
+                <select className="input" value={form.hora} onChange={e => setForm(f => ({ ...f, hora: e.target.value }))}>
+                  {!form.hora && <option value="">--</option>}
+                  {slots.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
               </div>
               <div className="form-group" style={{ flex: 1 }}>
                 <label className="form-label">Duración (min)</label>
