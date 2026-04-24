@@ -78,7 +78,7 @@ export default function Citas() {
     setLoading(true)
     const [{ data: c }, { data: sv }, { data: pl }] = await Promise.all([
       supabase.from('citas').select('id, cliente_id, peluquero_id, servicio_id, fecha_hora, duracion_min, estado').eq('barberia_id', barberiaId).order('fecha_hora', { ascending: false }),
-      supabase.from('servicios').select('id, nombre').eq('barberia_id', barberiaId),
+      supabase.from('servicios').select('id, nombre, duracion_min').eq('barberia_id', barberiaId),
       supabase.from('peluqueros').select('id, nombre').eq('barberia_id', barberiaId).eq('activo', true).order('nombre'),
     ])
     const citas = c ?? []
@@ -154,7 +154,7 @@ export default function Citas() {
   }
 
   function openNew() {
-    setForm({ cliente_id: clientes[0]?.id ?? '', peluquero_id: peluqueros[0]?.id ?? '', servicio_id: servicios[0]?.id ?? '', fecha: '', hora: '', duracion_min: 30, estado: 'confirmada' })
+    setForm({ cliente_id: clientes[0]?.id ?? '', peluquero_id: peluqueros[0]?.id ?? '', servicio_id: servicios[0]?.id ?? '', fecha: '', hora: '', duracion_min: servicios[0]?.duracion_min ?? 30, estado: 'confirmada' })
     setEditId(null)
     setError('')
     setModal('new')
@@ -306,7 +306,10 @@ export default function Citas() {
             </div>
             <div className="form-group">
               <label className="form-label">Servicio</label>
-              <select className="input" value={form.servicio_id} onChange={e => setForm(f => ({ ...f, servicio_id: e.target.value }))}>
+              <select className="input" value={form.servicio_id} onChange={e => {
+                const s = servicios.find(s => s.id === e.target.value)
+                setForm(f => ({ ...f, servicio_id: e.target.value, duracion_min: s?.duracion_min ?? f.duracion_min }))
+              }}>
                 {servicios.map(s => (
                   <option key={s.id} value={s.id}>{s.nombre}</option>
                 ))}
