@@ -57,19 +57,24 @@ export default function Clientes() {
   async function load() {
     setLoading(true)
     if (isSuperAdmin && !filterByBarberia) {
-      // SuperAdmin ve todos los clientes
+      // SuperAdmin ve todos los clientes sin filtro
       const { data } = await supabase
         .from('clientes')
         .select('id, nombre, apellido, telefono, email, fecha_registro')
         .order('nombre')
       setClientes(data ?? [])
     } else {
-      // Admin normal: clientes con citas en su barbería + creados manualmente aquí
-      const { data: citasData } = await supabase
-        .from('citas')
-        .select('cliente_id')
-        .eq('barberia_id', barberiaId)
-      const idsFromCitas = [...new Set((citasData ?? []).map(c => c.cliente_id).filter(Boolean))]
+      // Admin normal (o SuperAdmin filtrando por barbería): clientes con citas + creados aquí, excluyendo ocultos
+      const now = new Date().toISOString()
+      const [citasRes, citasFutRes, ocultoRes] = await Promise.all([
+        supabase.from('citas').select('cliente_id').eq('barberia_id', barberiaId),
+        supabase.from('citas').select('cliente_id').eq('barberia_id', barberiaId).gte('fecha_hora', now),
+        supabase.from('barberia_clientes_ocultos').select('cliente_id').eq('barberia_id', barberiaId),
+      ])
+      const idsFromCitas = [...new Set((citasRes.data ?? []).map(c => c.cliente_id).filter(Boolean))]
+      // Clientes con cita futura: siempre visibles aunque estén ocultos
+      const idsFutureCitas = new Set((citasFutRes.data ?? []).map(c => c.cliente_id).filter(Boolean))
+      const ocultoIds = new Set((ocultoRes.data ?? []).map(o => o.cliente_id))
       const orParts = [`created_by_barberia_id.eq.${barberiaId}`]
       if (idsFromCitas.length > 0) orParts.push(`id.in.(${idsFromCitas.join(',')})`)
       const { data } = await supabase
@@ -77,7 +82,8 @@ export default function Clientes() {
         .select('id, nombre, apellido, telefono, email, fecha_registro')
         .or(orParts.join(','))
         .order('nombre')
-      setClientes(data ?? [])
+      // Ocultar solo si NO tiene cita futura
+      setClientes((data ?? []).filter(c => !ocultoIds.has(c.id) || idsFutureCitas.has(c.id)))
     }
     setLoading(false)
   }
@@ -138,9 +144,11 @@ export default function Clientes() {
   }
 
   async function handleDelete(id) {
-    if (!confirm('¿Borrar este cliente?')) return
-    await supabase.from('clientes').delete().eq('id', id)
-    load()
+    if (!confirm('¿Eliminar este cliente de tu lista? El cliente seguirá activo para otras barberías.')) return
+    const { error } = await supabase
+      .from('barberia_clientes_ocultos')
+      .insert([{ barberia_id: barberiaId, cliente_id: id }])
+    if (!error) load()
   }
 
   return (
@@ -201,7 +209,9 @@ export default function Clientes() {
                 <td>
                   <div className="actions">
                     <button className="icon-btn" onClick={() => openEdit(c)} title="Editar"><IconEdit /></button>
-                    <button className="icon-btn danger" onClick={() => handleDelete(c.id)} title="Borrar"><IconDelete /></button>
+                    {(!isSuperAdmin || filterByBarberia) && (
+                      <button className="icon-btn danger" onClick={() => handleDelete(c.id)} title="Eliminar de mi lista"><IconDelete /></button>
+                    )}
                   </div>
                 </td>
               </tr>
