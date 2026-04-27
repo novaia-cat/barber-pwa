@@ -1289,7 +1289,12 @@ regBtn.addEventListener('click', async () => {
   if (!apellido || apellido.length < 2)  { regApellido.focus(); return; }
   if (!telefono.match(/^\d{9,15}$/))     { regTelefono.focus(); return; }
   if (!email.match(/.+@.+\..+/))        { document.getElementById('reg-email').focus(); return; }
-  if (password.length < 6)              { document.getElementById('reg-password').focus(); return; }
+  if (password.length < 8) {
+    msgEl.textContent = 'La contraseña debe tener al menos 8 caracteres.';
+    msgEl.classList.add('auth-msg--error');
+    document.getElementById('reg-password').focus();
+    return;
+  }
   if (password !== passConf) {
     msgEl.textContent = 'Las contraseñas no coinciden.';
     msgEl.classList.add('auth-msg--error');
@@ -1358,6 +1363,14 @@ regBtn.addEventListener('click', async () => {
   el.addEventListener('keydown', e => { if (e.key === 'Enter') regBtn.click(); });
 });
 
+// Feedback en tiempo real: colorear hint cuando se cumple el mínimo
+document.getElementById('reg-password').addEventListener('input', () => {
+  const hint = document.getElementById('reg-pw-hint');
+  if (!hint) return;
+  const ok = document.getElementById('reg-password').value.length >= 8;
+  hint.classList.toggle('auth-field-hint--ok', ok);
+});
+
 // ── Recuperar contraseña ──────────────────────────────────────────
 document.getElementById('forgot-send-btn').addEventListener('click', async () => {
   const email = document.getElementById('forgot-email').value.trim();
@@ -1395,7 +1408,12 @@ document.getElementById('new-password-btn').addEventListener('click', async () =
   const msgEl    = document.getElementById('new-password-msg');
   msgEl.textContent = ''; msgEl.className = 'auth-msg';
 
-  if (password.length < 6) { document.getElementById('new-password').focus(); return; }
+  if (password.length < 8) {
+    msgEl.textContent = 'La contraseña debe tener al menos 8 caracteres.';
+    msgEl.classList.add('auth-msg--error');
+    document.getElementById('new-password').focus();
+    return;
+  }
   if (password !== passConf) {
     msgEl.textContent = 'Las contraseñas no coinciden.';
     msgEl.classList.add('auth-msg--error');
