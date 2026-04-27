@@ -1961,7 +1961,7 @@ body {
   margin-top: 3px;
   transition: color 0.2s;
 }
-.auth-field-hint--ok { color: var(--color-secondary); }
+.auth-field-hint--ok { color: #3d8f5f; }
 
 /* ── Email verification sent ─────────────────────────────────────── */
 #reg-email-sent {
