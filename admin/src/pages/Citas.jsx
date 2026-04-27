@@ -170,6 +170,31 @@ export default function Citas() {
     setSaving(true)
     setError('')
 
+    const newStart = new Date(form.fecha + 'T' + form.hora + ':00')
+    const newEnd = new Date(newStart.getTime() + Number(form.duracion_min) * 60000)
+
+    let q = supabase.from('citas')
+      .select('id, fecha_hora, duracion_min, cliente_id')
+      .eq('peluquero_id', form.peluquero_id)
+      .eq('barberia_id', barberiaId)
+      .neq('estado', 'cancelada')
+      .gte('fecha_hora', form.fecha + 'T00:00:00')
+      .lte('fecha_hora', form.fecha + 'T23:59:59')
+    if (editId) q = q.neq('id', editId)
+    const { data: existing } = await q
+
+    const conflict = (existing ?? []).find(ex => {
+      const exStart = new Date(ex.fecha_hora.replace(/([+-]\d{2}:\d{2}|Z)$/, ''))
+      const exEnd = new Date(exStart.getTime() + ex.duracion_min * 60000)
+      return newStart < exEnd && newEnd > exStart
+    })
+    if (conflict) {
+      const conflictHora = new Date(conflict.fecha_hora.replace(/([+-]\d{2}:\d{2}|Z)$/, '')).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+      setError(`Colisión: ${peluqueroNombre(form.peluquero_id)} ya tiene cita con ${clienteNombre(conflict.cliente_id)} a las ${conflictHora}.`)
+      setSaving(false)
+      return
+    }
+
     const payload = {
       cliente_id: form.cliente_id,
       peluquero_id: form.peluquero_id,
