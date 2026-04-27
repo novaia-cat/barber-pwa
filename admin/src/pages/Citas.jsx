@@ -127,6 +127,11 @@ export default function Citas() {
     return s?.nombre ?? id ?? '—'
   }
 
+  function peluqueroNombre(id) {
+    const p = peluqueros.find(p => p.id === id)
+    return p?.nombre ?? '—'
+  }
+
   function isSameDay(isoStr, date) {
     const d = new Date(isoStr.replace(/([+-]\d{2}:\d{2}|Z)$/, ''))
     return d.getFullYear() === date.getFullYear() &&
@@ -246,6 +251,7 @@ export default function Citas() {
           <thead>
             <tr>
               <th>Cliente</th>
+              <th>Peluquero</th>
               <th>Servicio</th>
               <th>Fecha / Hora</th>
               <th>Duración</th>
@@ -255,14 +261,15 @@ export default function Citas() {
           </thead>
           <tbody>
             {loading && (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: 24, color: 'var(--color-on-surface-var)' }}>Cargando...</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--color-on-surface-var)' }}>Cargando...</td></tr>
             )}
             {!loading && filtered.length === 0 && (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: 24, color: 'var(--color-on-surface-var)' }}>Sin citas</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--color-on-surface-var)' }}>Sin citas</td></tr>
             )}
             {filtered.map(c => (
               <tr key={c.id}>
                 <td style={{ fontWeight: 500 }}>{clienteNombre(c.cliente_id)}</td>
+                <td className="td-muted">{peluqueroNombre(c.peluquero_id)}</td>
                 <td className="td-muted">{servicioNombre(c.servicio_id)}</td>
                 <td className="td-muted">{formatFecha(c.fecha_hora)}</td>
                 <td className="td-muted">{c.duracion_min} min</td>

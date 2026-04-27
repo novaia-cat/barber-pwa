@@ -57,7 +57,7 @@ export default function Calendario() {
   }, [barberiaId])
 
   async function loadEvents(conCanceladas = false) {
-    let query = supabase.from('citas').select('id, cliente_id, servicio_id, fecha_hora, duracion_min, estado').eq('barberia_id', barberiaId)
+    let query = supabase.from('citas').select('id, cliente_id, peluquero_id, servicio_id, fecha_hora, duracion_min, estado').eq('barberia_id', barberiaId)
     if (!conCanceladas) query = query.neq('estado', 'cancelada')
 
     const [{ data: citas }, { data: clientes }, { data: servicios }, { data: bloqueos }, { data: peluqueros }] = await Promise.all([
@@ -81,7 +81,7 @@ export default function Calendario() {
       const cancelada = c.estado === 'cancelada'
       return {
         id: c.id,
-        title: `${clienteMap[c.cliente_id] ?? '—'} · ${servicioMap[c.servicio_id] ?? c.servicio_id}`,
+        title: `${clienteMap[c.cliente_id] ?? '—'} · ${servicioMap[c.servicio_id] ?? c.servicio_id} · ${peluqueroMap[c.peluquero_id] ?? '—'}`,
         start,
         end,
         backgroundColor: cancelada ? '#c4bdb8' : '#725b3f',
