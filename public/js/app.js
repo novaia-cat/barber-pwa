@@ -841,12 +841,48 @@ async function startBookingWithService(svc) {
     showSlotsView();
     await fetchAllSlots();
   } else {
-    booking._peluqueros = peluqueros;
-    showSelectPeluqueroView(peluqueros, { afterPick: 'slots' });
+    // Filtrar a peluqueros con disponibilidad real antes de mostrar el picker
+    showSlotsView();
+    slotsLoading.style.display = 'flex';
+    slotsContainer.innerHTML = '';
+    const disponibles = await filterPeluquerosDisponibles(peluqueros, svc.duracion_min);
+    const lista = disponibles.length ? disponibles : peluqueros;
+    slotsLoading.style.display = 'none';
+    if (lista.length === 1) {
+      booking.peluquero = lista[0];
+      await fetchAllSlots();
+    } else {
+      booking._peluqueros = lista;
+      showSelectPeluqueroView(lista, { afterPick: 'slots' });
+    }
   }
 }
 
 // ── Peluquero selection ───────────────────────────────────────────
+async function filterPeluquerosDisponibles(peluqueros, duracion_min) {
+  const checks = peluqueros.map(p =>
+    fetch(WEBHOOK_CHAT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        barber_id:    barberId,
+        telefono:     session?.telefono || '',
+        nombre:       session?.nombre   || '',
+        apellido:     session?.apellido || '',
+        action:       'get_slots',
+        peluquero_id: p.id,
+        duracion_min: duracion_min || 30,
+        mensaje:      ''
+      })
+    })
+    .then(r => r.json())
+    .then(data => ({ p, ok: (data?.slots?.length || 0) > 0 }))
+    .catch(() => ({ p, ok: true }))
+  );
+  const results = await Promise.all(checks);
+  return results.filter(r => r.ok).map(r => r.p);
+}
+
 async function fetchPeluquerosActivos() {
   try {
     const { data, error } = await sb
