@@ -67,13 +67,14 @@ const menuDropdown  = document.getElementById('menu-dropdown');
 const aboutBtn      = document.getElementById('about-btn');
 const aboutModal    = document.getElementById('about-modal');
 const aboutCloseBtn = document.getElementById('about-close-btn');
-const viewLoading      = document.getElementById('view-loading');
-const viewHome         = document.getElementById('view-home');
-const viewLogin        = document.getElementById('view-login');
-const viewRegister     = document.getElementById('view-register');
-const viewLanding      = document.getElementById('view-landing');
-const viewSlots        = document.getElementById('view-slots');
-const viewSummary      = document.getElementById('view-summary');
+const viewLoading         = document.getElementById('view-loading');
+const viewHome            = document.getElementById('view-home');
+const viewLogin           = document.getElementById('view-login');
+const viewRegister        = document.getElementById('view-register');
+const viewLanding         = document.getElementById('view-landing');
+const viewSelectPeluquero = document.getElementById('view-select-peluquero');
+const viewSlots           = document.getElementById('view-slots');
+const viewSummary         = document.getElementById('view-summary');
 const viewConfirmation    = document.getElementById('view-confirmation');
 const viewCitas           = document.getElementById('view-citas');
 const viewChat            = document.getElementById('view-chat');
@@ -105,6 +106,7 @@ function hideAllViews() {
   viewNewPassword.classList.remove('active');
   viewHome.style.display = 'none';
   viewLanding.style.display = 'none';
+  viewSelectPeluquero.classList.remove('active');
   viewSlots.classList.remove('active');
   viewSummary.classList.remove('active');
   viewConfirmation.classList.remove('active');
@@ -144,13 +146,13 @@ function showRegisterView() {
   viewRegister.classList.add('active');
 }
 
-function showLandingView() {
+function showLandingView({ preserveBooking = false } = {}) {
   hideAllViews();
   viewLanding.style.display = 'flex';
   appHeader.style.display = 'flex';
   bottomNav.style.display = 'flex';
   setNavActive('services');
-  booking = null;
+  if (!preserveBooking) booking = null;
 }
 
 function showHomeView() {
@@ -228,9 +230,19 @@ function showConfirmationView(type = 'booking', onOk = showLandingView, details 
   }
 
   if (details) {
-    document.getElementById('confirm-fecha').textContent    = details.fecha || '';
-    document.getElementById('confirm-hora').textContent     = details.hora  || '';
+    document.getElementById('confirm-fecha').textContent    = details.fecha    || '';
+    document.getElementById('confirm-hora').textContent     = details.hora     || '';
     document.getElementById('confirm-servicio').textContent = details.servicio || '';
+    const pRow = document.getElementById('confirm-peluquero-row');
+    const pVal = document.getElementById('confirm-peluquero');
+    if (pRow && pVal) {
+      if (details.peluquero) {
+        pVal.textContent = details.peluquero;
+        pRow.style.display = '';
+      } else {
+        pRow.style.display = 'none';
+      }
+    }
   }
 }
 
@@ -268,7 +280,21 @@ backBtn.addEventListener('click', handleBack);
 
 function handleBack() {
   if (viewSummary.classList.contains('active')) {
-    showSlotsView('¿Cuando te va bien?');
+    showSlotsView();
+    return;
+  }
+  if (viewSlots.classList.contains('active')) {
+    // Si hubo elección de peluquero, volver al picker
+    if (booking && Array.isArray(booking._peluqueros) && booking._peluqueros.length > 1) {
+      showSelectPeluqueroView(booking._peluqueros, { afterPick: 'slots' });
+    } else {
+      showLandingView();
+    }
+    return;
+  }
+  if (viewSelectPeluquero.classList.contains('active')) {
+    // Desde el picker de peluquero, volver a servicios
+    showLandingView();
     return;
   }
   showLandingView();
@@ -544,9 +570,17 @@ function renderServiceCards() {
 }
 
 // ── Home CTA + nav ────────────────────────────────────────────────
-document.getElementById('home-cta-btn').addEventListener('click', () => {
+document.getElementById('home-cta-btn').addEventListener('click', async () => {
+  booking = {};
   renderServiceCards();
-  showLandingView();
+  const peluqueros = await fetchPeluquerosActivos();
+  if (peluqueros.length > 1) {
+    booking._peluqueros = peluqueros;
+    showSelectPeluqueroView(peluqueros, { afterPick: 'services' });
+  } else {
+    if (peluqueros.length === 1) booking.peluquero = peluqueros[0];
+    showLandingView({ preserveBooking: true });
+  }
 });
 
 document.getElementById('nav-home').addEventListener('click', () => {
@@ -555,6 +589,8 @@ document.getElementById('nav-home').addEventListener('click', () => {
 
 // ── Bottom nav ────────────────────────────────────────────────────
 document.getElementById('nav-services').addEventListener('click', () => {
+  booking = null;
+  renderServiceCards();
   showLandingView();
 });
 
@@ -778,10 +814,117 @@ let booking = null;
 const DAY_LABELS = ['Hoy', 'Manana', 'Pasado manana'];
 
 async function startBookingWithService(svc) {
+  const existingPeluquero = booking?.peluquero;
+  const existingPeluqueros = booking?._peluqueros;
   booking = { service: svc };
   selectSlotBtn.disabled = true;
-  showSlotsView('¿Cuando te va bien?');
-  await fetchAllSlots();
+
+  // Si el peluquero ya fue elegido en este flujo, ir directo a slots
+  if (existingPeluquero) {
+    booking.peluquero   = existingPeluquero;
+    booking._peluqueros = existingPeluqueros;
+    showSlotsView();
+    await fetchAllSlots();
+    return;
+  }
+
+  // Sin peluquero previo: obtener lista y decidir
+  const peluqueros = await fetchPeluquerosActivos();
+  if (!peluqueros.length) {
+    // Sin peluqueros configurados — ir a slots sin filtro
+    showSlotsView();
+    await fetchAllSlots();
+    return;
+  }
+  if (peluqueros.length === 1) {
+    booking.peluquero = peluqueros[0];
+    showSlotsView();
+    await fetchAllSlots();
+  } else {
+    booking._peluqueros = peluqueros;
+    showSelectPeluqueroView(peluqueros, { afterPick: 'slots' });
+  }
+}
+
+// ── Peluquero selection ───────────────────────────────────────────
+async function fetchPeluquerosActivos() {
+  try {
+    const { data, error } = await sb
+      .from('peluqueros')
+      .select('id, nombre, foto_url')
+      .eq('barberia_id', barberId)
+      .eq('activo', true)
+      .order('nombre');
+    if (error || !data) return [];
+    return data;
+  } catch {
+    return [];
+  }
+}
+
+function showSelectPeluqueroView(peluqueros, options = {}) {
+  // options.afterPick: 'services' | 'slots'
+  booking._afterPeluqueroPick = options.afterPick || 'services';
+  renderPeluqueroPills(peluqueros);
+  hideAllViews();
+  viewSelectPeluquero.classList.add('active');
+  appHeader.style.display = 'flex';
+  bottomNav.style.display = 'flex';
+  setNavActive('bookings');
+}
+
+function renderPeluqueroPills(peluqueros) {
+  const container = document.getElementById('peluquero-pills');
+  container.innerHTML = '';
+
+  peluqueros.forEach(p => {
+    const pill = document.createElement('button');
+    pill.className = 'peluquero-pill';
+
+    const photoDiv = document.createElement('div');
+    photoDiv.className = 'peluquero-pill-photo';
+
+    if (p.foto_url) {
+      const img = document.createElement('img');
+      img.src = p.foto_url;
+      img.alt = p.nombre;
+      img.onerror = () => {
+        img.remove();
+        photoDiv.innerHTML = '<span class="material-symbols-outlined">person</span>';
+      };
+      photoDiv.appendChild(img);
+    } else {
+      photoDiv.innerHTML = '<span class="material-symbols-outlined">person</span>';
+    }
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'peluquero-pill-name';
+    nameEl.textContent = p.nombre;
+
+    pill.appendChild(photoDiv);
+    pill.appendChild(nameEl);
+
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.peluquero-pill').forEach(b => b.classList.remove('selected'));
+      pill.classList.add('selected');
+      setTimeout(() => onPeluqueroSelected(p), 120);
+    });
+
+    container.appendChild(pill);
+  });
+}
+
+function onPeluqueroSelected(p) {
+  booking.peluquero = p;
+  const afterPick = booking._afterPeluqueroPick || 'services';
+
+  if (afterPick === 'slots') {
+    showSlotsView();
+    fetchAllSlots();
+  } else {
+    // Ir a la vista de servicios con el peluquero pre-seleccionado
+    showLandingView({ preserveBooking: true });
+  }
 }
 
 async function fetchAllSlots() {
@@ -792,12 +935,14 @@ async function fetchAllSlots() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        barber_id: barberId,
-        telefono:  session.telefono,
-        nombre:    session.nombre,
-        apellido:  session.apellido,
-        action:    'get_slots',
-        mensaje:   ''
+        barber_id:    barberId,
+        telefono:     session.telefono,
+        nombre:       session.nombre,
+        apellido:     session.apellido,
+        action:       'get_slots',
+        peluquero_id: booking?.peluquero?.id || null,
+        duracion_min: booking?.service?.duracion_min || 30,
+        mensaje:      ''
       })
     });
     const data = await res.json();
@@ -927,10 +1072,19 @@ function renderSummary() {
   document.getElementById('summary-service-name').textContent = svc.nombre;
   document.getElementById('summary-fecha').textContent = booking.fechaDisplay;
   document.getElementById('summary-hora').textContent = booking.hora;
+
+  const peluqueroRow = document.getElementById('summary-peluquero-row');
+  const peluqueroVal = document.getElementById('summary-peluquero');
+  if (booking.peluquero && peluqueroRow && peluqueroVal) {
+    peluqueroVal.textContent = booking.peluquero.nombre;
+    peluqueroRow.style.display = '';
+  } else if (peluqueroRow) {
+    peluqueroRow.style.display = 'none';
+  }
 }
 
 confirmBtn.addEventListener('click', executeBooking);
-changeSlotBtn.addEventListener('click', () => showSlotsView('¿Cuando te va bien?'));
+changeSlotBtn.addEventListener('click', () => showSlotsView());
 document.getElementById('confirm-ok-btn').addEventListener('click', () => {
   if (confirmOkAction) confirmOkAction();
 });
@@ -947,25 +1101,26 @@ async function executeBooking() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        barber_id:   barberId,
-        telefono:    session.telefono,
-        nombre:      session.nombre,
-        apellido:    session.apellido,
-        action:      'book',
-        servicio_id: svc.id,
-        fecha_hora:  fecha_hora,
-        mensaje:     ''
+        barber_id:    barberId,
+        telefono:     session.telefono,
+        nombre:       session.nombre,
+        apellido:     session.apellido,
+        action:       'book',
+        servicio_id:  svc.id,
+        peluquero_id: booking.peluquero?.id || null,
+        fecha_hora:   fecha_hora,
+        mensaje:      ''
       })
     });
 
-    // Poblar detalles en la pantalla de confirmación
-    document.getElementById('confirm-fecha').textContent    = booking.fechaDisplay;
-    document.getElementById('confirm-hora').textContent     = booking.hora;
-    document.getElementById('confirm-servicio').textContent = svc.nombre;
-
     confirmBtn.disabled = false;
     confirmBtn.textContent = 'Confirmar reserva';
-    showConfirmationView('booking', showLandingView);
+    showConfirmationView('booking', showLandingView, {
+      fecha:     booking.fechaDisplay,
+      hora:      booking.hora,
+      servicio:  svc.nombre,
+      peluquero: booking.peluquero?.nombre || null
+    });
   } catch (err) {
     console.error('[booking-error]', err);
     confirmBtn.disabled = false;
