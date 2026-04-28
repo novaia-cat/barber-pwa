@@ -1151,7 +1151,8 @@ async function executeBooking() {
 
     confirmBtn.disabled = false;
     confirmBtn.textContent = 'Confirmar reserva';
-    showConfirmationView('booking', showLandingView, {
+    const goToCitas = async () => { showCitasView(); await fetchAndRenderCitas(); };
+    showConfirmationView('booking', goToCitas, {
       fecha:     booking.fechaDisplay,
       hora:      booking.hora,
       servicio:  svc.nombre,
@@ -1277,6 +1278,12 @@ function renderCitaCards(citas) {
       barberiaEl.className = 'cita-barberia-name';
       barberiaEl.innerHTML = `<span class="material-symbols-outlined">storefront</span>${cita.barberia}`;
       info.appendChild(barberiaEl);
+    }
+    if (cita.peluquero) {
+      const peluqueroEl = document.createElement('div');
+      peluqueroEl.className = 'cita-barberia-name';
+      peluqueroEl.innerHTML = `<span class="material-symbols-outlined">person</span>${cita.peluquero}`;
+      info.appendChild(peluqueroEl);
     }
     info.appendChild(metaEl);
 

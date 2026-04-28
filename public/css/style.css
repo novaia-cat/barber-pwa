@@ -1345,6 +1345,12 @@ body {
   gap: 6px;
 }
 
+@keyframes confirm-pop {
+  0%   { transform: scale(0);    opacity: 0; }
+  70%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
 .confirm-circle-icon {
   width: 64px;
   height: 64px;
@@ -1354,6 +1360,10 @@ body {
   align-items: center;
   justify-content: center;
   margin-bottom: 14px;
+}
+
+#view-confirmation.active .confirm-circle-icon {
+  animation: confirm-pop 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
 
 .confirm-circle-icon .material-symbols-outlined {
